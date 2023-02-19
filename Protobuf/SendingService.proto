@@ -1,0 +1,16 @@
+syntax = "proto3";
+package sending;
+
+service SendingService { rpc SendFile(stream BatchedFile) returns (Response); }
+
+enum SendingStatus {
+  OK = 0;
+  ERROR = 1;
+}
+
+message Response {
+  string message = 1;
+  SendingStatus status = 2;
+}
+
+message BatchedFile { bytes file_batch = 1; }

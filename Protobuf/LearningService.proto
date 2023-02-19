@@ -1,0 +1,35 @@
+syntax = "proto3";
+package learning;
+
+import "google/protobuf/empty.proto";
+
+service LearningService {
+  rpc GetLearningModelsNames(google.protobuf.Empty)
+      returns (LearningModelNames);
+
+  rpc GetDatasetNames(google.protobuf.Empty) returns (DatasetNames);
+
+  rpc GetTrainedModels(google.protobuf.Empty) returns (TrainedModels);
+
+  rpc TrainModel(Model) returns (TrainResponse);
+}
+
+message LearningModelNames { repeated string names = 1; }
+message DatasetNames { repeated string names = 1; }
+message TrainedModels { repeated Model models = 1; }
+message DatasetName { string name = 1; }
+message TrainedModel {
+  string dataset_name = 1;
+  string model_name = 2;
+  string uuid = 3;
+}
+message Model {
+  string dataset_name = 1;
+  string model_name = 2;
+}
+enum TrainStatus {
+  SUCCESS = 0;
+  ERROR = 1;
+}
+
+message TrainResponse { TrainStatus status = 1; }
