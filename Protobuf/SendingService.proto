@@ -13,4 +13,7 @@ message Response {
   SendingStatus status = 2;
 }
 
-message BatchedFile { bytes file_batch = 1; }
+message BatchedFile {
+  bytes file_batch = 1;
+  string name = 2;
+}
