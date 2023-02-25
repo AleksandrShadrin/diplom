@@ -3,27 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Presentation.BlazorServer", "Client.Presentation.BlazorServer\Client.Presentation.BlazorServer.csproj", "{D12409CF-5791-40B3-9E56-B7B5E771EC2A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PSASH.Core", "PSASH.Core\PSASH.Core.csproj", "{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSASH.Core", "PSASH.Core\PSASH.Core.csproj", "{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PSASH.Application", "PSASH.Application\PSASH.Application.csproj", "{BAC691D0-F091-432E-9131-539C9A50FF7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSASH.Application", "PSASH.Application\PSASH.Application.csproj", "{BAC691D0-F091-432E-9131-539C9A50FF7E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSASH.Infrastructure", "PSASH.Infrastructure\PSASH.Infrastructure.csproj", "{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PSASH.Infrastructure", "PSASH.Infrastructure\PSASH.Infrastructure.csproj", "{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D12409CF-5791-40B3-9E56-B7B5E771EC2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D12409CF-5791-40B3-9E56-B7B5E771EC2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D12409CF-5791-40B3-9E56-B7B5E771EC2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D12409CF-5791-40B3-9E56-B7B5E771EC2A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -36,5 +27,11 @@ Global
 		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2FFC8973-E259-4559-8698-A285B1DA7435}
 	EndGlobalSection
 EndGlobal
