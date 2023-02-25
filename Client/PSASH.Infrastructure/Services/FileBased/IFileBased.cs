@@ -1,4 +1,4 @@
-namespace PSASH.Infrastructure.Services
+namespace PSASH.Infrastructure.Services.FileBased
 {
     public interface IFileBased
     {

@@ -1,6 +1,6 @@
 using PSASH.Core.Entities;
 
-namespace PSASH.Infrastructure.Services
+namespace PSASH.Infrastructure.Services.FileBased
 {
     public class FileBasedMonoDatasetService : IFileBasedMonoDatasetService
     {
