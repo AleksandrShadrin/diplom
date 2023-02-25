@@ -5,6 +5,12 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Presentation.BlazorServer", "Client.Presentation.BlazorServer\Client.Presentation.BlazorServer.csproj", "{D12409CF-5791-40B3-9E56-B7B5E771EC2A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSASH.Core", "PSASH.Core\PSASH.Core.csproj", "{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSASH.Application", "PSASH.Application\PSASH.Application.csproj", "{BAC691D0-F091-432E-9131-539C9A50FF7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSASH.Infrastructure", "PSASH.Infrastructure\PSASH.Infrastructure.csproj", "{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +24,17 @@ Global
 		{D12409CF-5791-40B3-9E56-B7B5E771EC2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D12409CF-5791-40B3-9E56-B7B5E771EC2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D12409CF-5791-40B3-9E56-B7B5E771EC2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{349D19BD-C99E-465E-BC0C-E2C5DE185B3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAC691D0-F091-432E-9131-539C9A50FF7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAC691D0-F091-432E-9131-539C9A50FF7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAC691D0-F091-432E-9131-539C9A50FF7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAC691D0-F091-432E-9131-539C9A50FF7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
