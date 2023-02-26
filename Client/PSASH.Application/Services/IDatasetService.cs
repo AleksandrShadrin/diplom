@@ -1,4 +1,5 @@
 using PSASH.Core.Entities;
+using PSASH.Core.ValueObjects;
 
 namespace PSASH.Application.Services
 {
@@ -6,6 +7,6 @@ namespace PSASH.Application.Services
         where T : BaseTimeSeries
     {
         Dataset LoadDataset();
-        T LoadTimeSeries(string name);
+        T LoadTimeSeries(TimeSeriesInfo info);
     }
 }

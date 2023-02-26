@@ -1,12 +1,14 @@
+using PSASH.Core.ValueObjects;
+
 namespace PSASH.Core.Entities
 {
     public abstract class BaseTimeSeries
     {
-        public string Name { get; init; } = string.Empty;
+        public TimeSeriesInfo TimeSeriesInfo { get; init; }
 
-        public BaseTimeSeries(string name)
+        public BaseTimeSeries(TimeSeriesInfo info)
         {
-            Name = name;
+            TimeSeriesInfo = info;
         }
     }
 }
