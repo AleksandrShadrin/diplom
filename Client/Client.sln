@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PSASH.Application", "PSASH.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PSASH.Infrastructure", "PSASH.Infrastructure\PSASH.Infrastructure.csproj", "{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{66FEE8D6-9E94-49AC-B2C8-680E7857DFD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSOSH.Infrastructure.tests", "tests\PSOSH.Infrastructure.tests\PSOSH.Infrastructure.tests.csproj", "{0A8C7899-84C8-4A23-9DE1-2D09726116EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,11 +31,18 @@ Global
 		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B90C6FDC-4DD9-4D71-B1E8-375316A664A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A8C7899-84C8-4A23-9DE1-2D09726116EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A8C7899-84C8-4A23-9DE1-2D09726116EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A8C7899-84C8-4A23-9DE1-2D09726116EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A8C7899-84C8-4A23-9DE1-2D09726116EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2FFC8973-E259-4559-8698-A285B1DA7435}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0A8C7899-84C8-4A23-9DE1-2D09726116EC} = {66FEE8D6-9E94-49AC-B2C8-680E7857DFD8}
 	EndGlobalSection
 EndGlobal
