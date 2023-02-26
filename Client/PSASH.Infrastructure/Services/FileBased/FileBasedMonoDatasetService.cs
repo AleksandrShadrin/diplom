@@ -8,11 +8,11 @@ namespace PSASH.Infrastructure.Services.FileBased
     public class FileBasedMonoDatasetService : IFileBasedMonoDatasetService
     {
         private string _path = String.Empty;
+        private Dataset _dataset;
         private readonly ITimeSeriesConverter<string, MonoTimeSeries> _timeSeriesConverter;
 
-        public FileBasedMonoDatasetService(string path, ITimeSeriesConverter<string, MonoTimeSeries> timeSeriesConverter)
+        public FileBasedMonoDatasetService(ITimeSeriesConverter<string, MonoTimeSeries> timeSeriesConverter)
         {
-            _path = path;
             _timeSeriesConverter = timeSeriesConverter;
         }
 
@@ -22,7 +22,23 @@ namespace PSASH.Infrastructure.Services.FileBased
         /// <returns>Возвращает Dataset</returns>
         public Dataset LoadDataset()
         {
-            throw new NotImplementedException();
+            ValidateDatasetStructure(_path);
+
+            var datasetName = new DirectoryInfo(_path).Name;
+            var timeSeriesInfoList = new List<TimeSeriesInfo>();
+
+            foreach (var directory in Directory.GetDirectories(_path))
+            {
+                var timeSeriesInfoForDirectory =
+                    Directory
+                        .GetFiles(directory)
+                        .Select(Path.GetFileNameWithoutExtension)
+                        .Select(fn => new TimeSeriesInfo(directory, fn));
+
+                timeSeriesInfoList.AddRange(timeSeriesInfoForDirectory);
+            }
+
+            return new Dataset(timeSeriesInfoList, datasetName);
         }
 
         /// <summary>
@@ -47,12 +63,12 @@ namespace PSASH.Infrastructure.Services.FileBased
         /// </exception>
         public void SetPath(string path)
         {
-            if (Path.Exists(path))
+            if (Directory.Exists(path) == false)
             {
-                _path = path;
+                throw new PathDontExistException(path);
             }
 
-            throw new PathDontExistException(path);
+            _path = path;
         }
 
         /// <summary>
@@ -63,7 +79,54 @@ namespace PSASH.Infrastructure.Services.FileBased
         /// </exception>
         private void ValidateDatasetStructure(string path)
         {
+            var directories = Directory.GetDirectories(path);
+
+            // Проверка на наличие ненужных папок в датасете
+            if (directories
+                .Select(Directory.GetDirectories)
+                .Any(dirs => dirs.Length != 0))
+            {
+                throw new DatasetStructureInvalidException(path);
+            }
+
+            var sameExtensions = directories
+                .Select(FilesExtensionsTheSame)
+                .ToList();
+
+            if (sameExtensions
+                    .Any(ext => ext.IsSame == false) ||
+                sameExtensions
+                    .DistinctBy(ext => ext.Ext)
+                    .Count() > 1)
+            {
+                throw new DatasetStructureInvalidException(path);
+            }
+
 
         }
+
+        private SameExt FilesExtensionsTheSame(string directory)
+        {
+            var current_ext = string.Empty;
+
+            foreach (var file in Directory.GetFiles(directory))
+            {
+                var ext = Path.GetExtension(file);
+
+                if (String.Empty == current_ext)
+                {
+                    current_ext = ext;
+                    continue;
+                }
+                else if (ext != current_ext)
+                {
+                    return new(current_ext, false);
+                }
+            }
+
+            return new(current_ext, true);
+        }
+
+        record SameExt(string Ext, bool IsSame);
     }
 }

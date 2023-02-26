@@ -6,6 +6,8 @@
 
         public PathDontExistException(string path)
             : base($"Path: {path} don't exist.")
-        { }
+        {
+            Path = path;
+        }
     }
 }
