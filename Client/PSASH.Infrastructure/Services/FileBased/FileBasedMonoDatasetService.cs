@@ -17,9 +17,9 @@ namespace PSASH.Infrastructure.Services.FileBased
         }
 
         /// <summary>
-        /// Загрузка датасета
+        /// Р—Р°РіСЂСѓР·РєР° РґР°С‚Р°СЃРµС‚Р°
         /// </summary>
-        /// <returns>Возвращает Dataset</returns>
+        /// <returns>Р’РѕР·РІСЂР°С‰Р°РµС‚ Dataset</returns>
         public Dataset LoadDataset()
         {
             ValidateDatasetStructure(_path);
@@ -42,7 +42,7 @@ namespace PSASH.Infrastructure.Services.FileBased
         }
 
         /// <summary>
-        /// Загрузить временной ряд по его информации
+        /// Р—Р°РіСЂСѓР·РёС‚СЊ РІСЂРµРјРµРЅРЅРѕР№ СЂСЏРґ РїРѕ РµРіРѕ РёРЅС„РѕСЂРјР°С†РёРё
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -53,13 +53,13 @@ namespace PSASH.Infrastructure.Services.FileBased
         }
 
         /// <summary>
-        /// Назначение пути к датасету
+        /// РќР°Р·РЅР°С‡РµРЅРёРµ РїСѓС‚Рё Рє РґР°С‚Р°СЃРµС‚Сѓ
         /// </summary>
         /// <param name="path">
-        /// Путь к датасету
+        /// РџСѓС‚СЊ Рє РґР°С‚Р°СЃРµС‚Сѓ
         /// </param>
         /// <exception cref="PathDontExistException">
-        /// Если не существует пути
+        /// Р•СЃР»Рё РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚ РїСѓС‚Рё
         /// </exception>
         public void SetPath(string path)
         {
@@ -72,16 +72,16 @@ namespace PSASH.Infrastructure.Services.FileBased
         }
 
         /// <summary>
-        /// Проверка структуры датасета 
+        /// РџСЂРѕРІРµСЂРєР° СЃС‚СЂСѓРєС‚СѓСЂС‹ РґР°С‚Р°СЃРµС‚Р° 
         /// </summary>
         /// <exception cref="DatasetStructureInvalidException">
-        /// Структура датасета нарушена
+        /// РЎС‚СЂСѓРєС‚СѓСЂР° РґР°С‚Р°СЃРµС‚Р° РЅР°СЂСѓС€РµРЅР°
         /// </exception>
         private void ValidateDatasetStructure(string path)
         {
             var directories = Directory.GetDirectories(path);
 
-            // Проверка на наличие ненужных папок в датасете
+            // РџСЂРѕРІРµСЂРєР° РЅР° РЅР°Р»РёС‡РёРµ РЅРµРЅСѓР¶РЅС‹С… РїР°РїРѕРє РІ РґР°С‚Р°СЃРµС‚Рµ
             if (directories
                 .Select(Directory.GetDirectories)
                 .Any(dirs => dirs.Length != 0))
