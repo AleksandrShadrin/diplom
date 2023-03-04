@@ -5,7 +5,7 @@ import grpc
 import SendingService_pb2 as SendingService__pb2
 
 
-class SendingServiceStub(object):
+class DatasetSenderStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -14,42 +14,42 @@ class SendingServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.SendFile = channel.stream_unary(
-                '/sending.SendingService/SendFile',
-                request_serializer=SendingService__pb2.BatchedFile.SerializeToString,
+        self.SendDataset = channel.stream_unary(
+                '/sending.DatasetSender/SendDataset',
+                request_serializer=SendingService__pb2.DatasetShard.SerializeToString,
                 response_deserializer=SendingService__pb2.Response.FromString,
                 )
 
 
-class SendingServiceServicer(object):
+class DatasetSenderServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def SendFile(self, request_iterator, context):
+    def SendDataset(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_SendingServiceServicer_to_server(servicer, server):
+def add_DatasetSenderServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'SendFile': grpc.stream_unary_rpc_method_handler(
-                    servicer.SendFile,
-                    request_deserializer=SendingService__pb2.BatchedFile.FromString,
+            'SendDataset': grpc.stream_unary_rpc_method_handler(
+                    servicer.SendDataset,
+                    request_deserializer=SendingService__pb2.DatasetShard.FromString,
                     response_serializer=SendingService__pb2.Response.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'sending.SendingService', rpc_method_handlers)
+            'sending.DatasetSender', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
-class SendingService(object):
+class DatasetSender(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def SendFile(request_iterator,
+    def SendDataset(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -59,8 +59,8 @@ class SendingService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/sending.SendingService/SendFile',
-            SendingService__pb2.BatchedFile.SerializeToString,
+        return grpc.experimental.stream_unary(request_iterator, target, '/sending.DatasetSender/SendDataset',
+            SendingService__pb2.DatasetShard.SerializeToString,
             SendingService__pb2.Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
