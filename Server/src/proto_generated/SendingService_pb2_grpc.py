@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import SendingService_pb2 as SendingService__pb2
+from proto_generated import SendingService_pb2 as SendingService__pb2
 
 
 class DatasetSenderStub(object):
@@ -15,10 +15,11 @@ class DatasetSenderStub(object):
             channel: A grpc.Channel.
         """
         self.SendDataset = channel.stream_unary(
-                '/sending.DatasetSender/SendDataset',
-                request_serializer=SendingService__pb2.DatasetShard.SerializeToString,
-                response_deserializer=SendingService__pb2.Response.FromString,
-                )
+            '/sending.DatasetSender/SendDataset',
+            request_serializer=SendingService__pb2.DatasetShard.
+            SerializeToString,
+            response_deserializer=SendingService__pb2.Response.FromString,
+        )
 
 
 class DatasetSenderServicer(object):
@@ -33,34 +34,36 @@ class DatasetSenderServicer(object):
 
 def add_DatasetSenderServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'SendDataset': grpc.stream_unary_rpc_method_handler(
-                    servicer.SendDataset,
-                    request_deserializer=SendingService__pb2.DatasetShard.FromString,
-                    response_serializer=SendingService__pb2.Response.SerializeToString,
-            ),
+        'SendDataset':
+        grpc.stream_unary_rpc_method_handler(
+            servicer.SendDataset,
+            request_deserializer=SendingService__pb2.DatasetShard.FromString,
+            response_serializer=SendingService__pb2.Response.SerializeToString,
+        ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'sending.DatasetSender', rpc_method_handlers)
-    server.add_generic_rpc_handlers((generic_handler,))
+        'sending.DatasetSender', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler, ))
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class DatasetSender(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def SendDataset(request_iterator,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/sending.DatasetSender/SendDataset',
+                    target,
+                    options=(),
+                    channel_credentials=None,
+                    call_credentials=None,
+                    insecure=False,
+                    compression=None,
+                    wait_for_ready=None,
+                    timeout=None,
+                    metadata=None):
+        return grpc.experimental.stream_unary(
+            request_iterator, target, '/sending.DatasetSender/SendDataset',
             SendingService__pb2.DatasetShard.SerializeToString,
-            SendingService__pb2.Response.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            SendingService__pb2.Response.FromString, options,
+            channel_credentials, insecure, call_credentials, compression,
+            wait_for_ready, timeout, metadata)

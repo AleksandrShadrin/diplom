@@ -1,10 +1,21 @@
-import grpc;
-import proto_generated.SendingService_pb2_grpc as SendingService_pb2_grpc;
-from concurrent import futures;
+import grpc
+import proto_generated.SendingService_pb2_grpc
+from appdirs import user_data_dir
+from python_json_config import ConfigBuilder
+import asyncio
 
-def run():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers = 4))
-    SendingService_pb2_grpc.add_SendingServiceServicer_to_server(none, server)
-    server.add_secure_port('[::]:50051')
-    server.start()
-    server.wait_for_termination()
+
+async def run():
+    server = grpc.aio.server()
+    proto_generated.SendingService_pb2_grpc.add_DatasetSenderServicer_to_server(
+        None, server)
+    await server.add_secure_port('[::]:50051')
+    await server.start()
+    await server.wait_for_termination()
+
+
+if __name__ == '__main__':
+    asyncio.run(run())
+    builder = ConfigBuilder()
+    config = builder.parse_config('./config.json')
+    print(config.appname)

@@ -13,21 +13,21 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14SendingService.proto\x12\x07sending\"C\n\x08Response\x12\x0f\n\x07message\x18\x01 \x01(\t\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.sending.SendingStatus\"7\n\nTimeSeries\x12\r\n\x05\x63lass\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\x01\"d\n\x0c\x44\x61tasetShard\x12\x19\n\x0c\x64\x61taset_name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12(\n\x0btime_series\x18\x02 \x01(\x0b\x32\x13.sending.TimeSeriesB\x0f\n\r_dataset_name*\"\n\rSendingStatus\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x32J\n\rDatasetSender\x12\x39\n\x0bSendDataset\x12\x15.sending.DatasetShard\x1a\x11.sending.Response(\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14SendingService.proto\x12\x07sending\"C\n\x08Response\x12\x0f\n\x07message\x18\x01 \x01(\t\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.sending.SendingStatus\"<\n\nTimeSeries\x12\x12\n\nclass_name\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\x01\"\x94\x01\n\x0c\x44\x61tasetShard\x12\x19\n\x0c\x64\x61taset_name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x1b\n\x0eupdate_dataset\x18\x02 \x01(\x08H\x01\x88\x01\x01\x12(\n\x0btime_series\x18\x03 \x01(\x0b\x32\x13.sending.TimeSeriesB\x0f\n\r_dataset_nameB\x11\n\x0f_update_dataset*\"\n\rSendingStatus\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x32J\n\rDatasetSender\x12\x39\n\x0bSendDataset\x12\x15.sending.DatasetShard\x1a\x11.sending.Response(\x01\x62\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'SendingService_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _SENDINGSTATUS._serialized_start=261
-  _SENDINGSTATUS._serialized_end=295
+  _SENDINGSTATUS._serialized_start=315
+  _SENDINGSTATUS._serialized_end=349
   _RESPONSE._serialized_start=33
   _RESPONSE._serialized_end=100
   _TIMESERIES._serialized_start=102
-  _TIMESERIES._serialized_end=157
-  _DATASETSHARD._serialized_start=159
-  _DATASETSHARD._serialized_end=259
-  _DATASETSENDER._serialized_start=297
-  _DATASETSENDER._serialized_end=371
+  _TIMESERIES._serialized_end=162
+  _DATASETSHARD._serialized_start=165
+  _DATASETSHARD._serialized_end=313
+  _DATASETSENDER._serialized_start=351
+  _DATASETSENDER._serialized_end=425
 # @@protoc_insertion_point(module_scope)
