@@ -33,7 +33,7 @@ class SendingService(DatasetSenderServicer):
         dataset = Dataset(time_series_list, dataset_name)
 
         self.dataset_service.set_dataset(dataset)
-        result = self.dataset_service.save_dataset()
+        result = self.dataset_service.save_dataset(rewrite=update_dataset)
 
         if result == Result.ERROR:
             return Response("something went wrong, try again",

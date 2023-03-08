@@ -1,12 +1,16 @@
-from python_json_config import Config
-from BaseDatasetService import BaseDatasetService
+from services.BaseDatasetService import BaseDatasetService
+from models.TimeSeries import TimeSeries
 from models.Dataset import Dataset
 from models.Result import Result
 from models.AppConfig import AppConfig
-from appdirs import user_data_dir
-from tempfile import gettempdir
 import json
+import uuid
+from dataclasses import asdict
+from appdirs import user_data_dir
 import os
+import shutil
+from dacite import from_dict
+from typing import Union
 
 
 class JsonDatasetService(BaseDatasetService):
@@ -21,21 +25,58 @@ class JsonDatasetService(BaseDatasetService):
         Keyword arguments:
         rewrite - bool, rewrite dataset, default: False
         """
-        path = os.path.join(user_data_dir(), self.config.get_appname(),
-                            'datasets', self.dataset.name)
+        path = self._get_dataset_path()
 
         rewrite = kwargs.get('rewrite', False)
 
         if rewrite:
-            res = self._try_delete_folder(path)
+            res = self._try_recreate_folder(path)
             if res == Result.ERROR:
                 return Result.ERROR
-        elif os.path.exist(path):
+        elif os.path.exists(path):
             return Result.OK
 
-        return self._try_delete_folder(path, self.dataset)
+        return self._write_dataset_on_disk(path, self.dataset)
 
-    def _write_dataset_on_disk(path: str, dataset: Dataset) -> Result:
+    def load_dataset(self, **kwargs) -> Union[Dataset, None]:
+        """
+        Load dataset from storage
+        
+        Keyword arguments:
+        name - str, name of dataset
+        
+        returns:
+        Dataset - dataset loaded from storage or None 
+        when name don't specified
+        """
+        if 'name' not in kwargs.keys():
+            return None
+        dataset_name = kwargs['name']
+        path = self._get_dataset_path()
+
+        timeseries_names = os.listdir(path)
+
+        timeseries_list = [
+            self._load_file(os.path.join(path, name))
+            for name in timeseries_names
+        ]
+
+        return Dataset(timeseries_list, dataset_name)
+
+    def _load_file(self, path: str) -> TimeSeries:
+        """Load TimeSeries from file
+        
+        Parameters:
+        path - str: path to file
+        """
+        data = None
+        with open(path, encoding='utf-8') as fr:
+            data = json.load(fr)
+
+        timeseries = from_dict(data_class=TimeSeries, data=data)
+        return timeseries
+
+    def _write_dataset_on_disk(self, path: str, dataset: Dataset) -> Result:
         """
         Write dataset on disk as json files
         
@@ -46,16 +87,24 @@ class JsonDatasetService(BaseDatasetService):
         returns:
         Result - ERROR or OK state of operation
         """
-        for (i, ts) in enumerate(dataset.time_series):
+        for ts in dataset.time_series:
             try:
-                with open(os.path.join(path, i), 'w') as fw:
-                    json.dump(ts, fw)
+                with open(os.path.join(path,
+                                       str(uuid.uuid1()) + '.json'),
+                          'w',
+                          encoding='utf-8') as fw:
+                    json.dump(asdict(ts), fw)
+
             except OSError:
                 return Result.ERROR
 
-        Result.OK
+        return Result.OK
 
-    def _try_delete_folder(path: str) -> Result:
+    def _get_dataset_path(self) -> str:
+        return os.path.join(user_data_dir(), self.config.get_appname(),
+                            'datasets', self.dataset.name)
+
+    def _try_recreate_folder(self, path: str) -> Result:
         """
         Try delete folder
         
@@ -68,8 +117,10 @@ class JsonDatasetService(BaseDatasetService):
         """
         if os.path.exists(path):
             try:
-                os.removedirs()
+                shutil.rmtree(path)
             except OSError:
                 return Result.ERROR
+
+        os.makedirs(path)
 
         return Result.OK

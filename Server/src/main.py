@@ -15,7 +15,8 @@ async def run():
 
 
 if __name__ == '__main__':
-    asyncio.run(run())
+    # asyncio.run(run())
     builder = ConfigBuilder()
+    builder.add_optional_field('appname')
     config = builder.parse_config('./config.json')
     print(config.appname)
