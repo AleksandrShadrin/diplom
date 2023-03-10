@@ -3,7 +3,7 @@ from proto_generated.SendingService_pb2 import DatasetShard, Response, SendingSt
 from models.Result import Result
 from models.Dataset import Dataset
 from models.TimeSeries import TimeSeries
-from BaseDatasetService import BaseDatasetService
+from services.BaseDatasetService import BaseDatasetService
 from typing import Iterator, List
 
 
@@ -26,7 +26,8 @@ class SendingService(DatasetSenderServicer):
                 update_dataset = dshard.update_dataset
 
             time_series = TimeSeries(dshard.time_series.values,
-                                     dshard.time_series.class_name)
+                                     dshard.time_series.class_name,
+                                     dshard.time_series.id)
 
             time_series_list.append(time_series)
 

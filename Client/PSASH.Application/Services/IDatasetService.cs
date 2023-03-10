@@ -7,15 +7,15 @@ namespace PSASH.Application.Services
         where T : BaseTimeSeries
     {
         /// <summary>
-        /// Загружает датасет
+        /// Р—Р°РіСЂСѓР¶Р°РµС‚ РґР°С‚Р°СЃРµС‚
         /// </summary>
-        /// <returns>Возвращает Dataset</returns>
+        /// <returns>Р’РѕР·РІСЂР°С‰Р°РµС‚ Dataset</returns>
         Dataset LoadDataset();
         /// <summary>
-        /// Загружает временной ряд из датасета
+        /// Р—Р°РіСЂСѓР¶Р°РµС‚ РІСЂРµРјРµРЅРЅРѕР№ СЂСЏРґ РёР· РґР°С‚Р°СЃРµС‚Р°
         /// </summary>
-        /// <param name="info">информация об временном ряде</param>
-        /// <returns>Возвращает временной ряд</returns>
+        /// <param name="info">РёРЅС„РѕСЂРјР°С†РёСЏ РѕР± РІСЂРµРјРµРЅРЅРѕРј СЂСЏРґРµ</param>
+        /// <returns>Р’РѕР·РІСЂР°С‰Р°РµС‚ РІСЂРµРјРµРЅРЅРѕР№ СЂСЏРґ</returns>
         T LoadTimeSeries(TimeSeriesInfo info);
     }
 }

@@ -25,7 +25,7 @@ class JsonDatasetService(BaseDatasetService):
         Keyword arguments:
         rewrite - bool, rewrite dataset, default: False
         """
-        path = self._get_dataset_path()
+        path = os.path.join(self._get_datasets_folder(), self.dataset.name)
 
         rewrite = kwargs.get('rewrite', False)
 
@@ -47,12 +47,16 @@ class JsonDatasetService(BaseDatasetService):
         
         returns:
         Dataset - dataset loaded from storage or None 
-        when name don't specified
+        when name don't specified or dataset don't exist
         """
         if 'name' not in kwargs.keys():
             return None
+
         dataset_name = kwargs['name']
-        path = self._get_dataset_path()
+        path = os.path.join(self._get_datasets_folder(), dataset_name)
+
+        if os.path.exists(path) is False:
+            return None
 
         timeseries_names = os.listdir(path)
 
@@ -100,9 +104,9 @@ class JsonDatasetService(BaseDatasetService):
 
         return Result.OK
 
-    def _get_dataset_path(self) -> str:
+    def _get_datasets_folder(self) -> str:
         return os.path.join(user_data_dir(), self.config.get_appname(),
-                            'datasets', self.dataset.name)
+                            'datasets')
 
     def _try_recreate_folder(self, path: str) -> Result:
         """

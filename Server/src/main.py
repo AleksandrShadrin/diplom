@@ -1,22 +1,20 @@
-import grpc
-import proto_generated.SendingService_pb2_grpc
-from appdirs import user_data_dir
-from python_json_config import ConfigBuilder
-import asyncio
+import os
+from containers.AppContainers import AppContainer
+from dependency_injector.wiring import Provide, inject
+from server import Server
 
 
-async def run():
-    server = grpc.aio.server()
-    proto_generated.SendingService_pb2_grpc.add_DatasetSenderServicer_to_server(
-        None, server)
-    await server.add_secure_port('[::]:50051')
-    await server.start()
-    await server.wait_for_termination()
+@inject
+def main(server: Server = Provide[AppContainer.server]):
+    server.launch()
 
 
 if __name__ == '__main__':
-    # asyncio.run(run())
-    builder = ConfigBuilder()
-    builder.add_optional_field('appname')
-    config = builder.parse_config('./config.json')
-    print(config.appname)
+    app_container = AppContainer()
+
+    app_container.config.from_dict({'path': os.path.join('.', 'config.json')})
+
+    app_container.init_resources()
+    app_container.wire(modules=[__name__])
+
+    main()

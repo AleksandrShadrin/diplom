@@ -6,23 +6,23 @@ namespace PSASH.Application.Services
     public interface ILearningService
     {
         /// <summary>
-        /// Обучение модели
+        /// СњР±СѓС‡РµРЅРёРµ РјРѕРґРµР»Рё
         /// </summary>
-        /// <param name="model">имя модели</param>
-        /// <param name="options">параметры обучения</param>
-        /// <returns>Возвращает обученную модель</returns>
+        /// <param name="model">РёРјВ¤ РјРѕРґРµР»Рё</param>
+        /// <param name="options">РїР°СЂР°РјРµС‚СЂС‹ РѕР±СѓС‡РµРЅРёВ¤</param>
+        /// <returns>В¬РѕР·РІСЂР°С‰Р°РµС‚ РѕР±СѓС‡РµРЅРЅСѓСЋ РјРѕРґРµР»СЊ</returns>
         TrainedModel TrainModel(UntrainedModel model, TrainOptions options);
 
         /// <summary>
-        /// Получает обученные модели
+        /// С•РѕР»СѓС‡Р°РµС‚ РѕР±СѓС‡РµРЅРЅС‹Рµ РјРѕРґРµР»Рё
         /// </summary>
-        /// <returns>Возвращает список готовых моделей</returns>
+        /// <returns>В¬РѕР·РІСЂР°С‰Р°РµС‚ СЃРїРёСЃРѕРє РіРѕС‚РѕРІС‹С… РјРѕРґРµР»РµР№</returns>
         List<TrainedModel> GetTrainedModels();
 
         /// <summary>
-        /// Возвращает существующие модели для обучения
+        /// В¬РѕР·РІСЂР°С‰Р°РµС‚ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёРµ РјРѕРґРµР»Рё РґР»В¤ РѕР±СѓС‡РµРЅРёВ¤
         /// </summary>
-        /// <returns>Возвращает список необученных моделей</returns>
+        /// <returns>В¬РѕР·РІСЂР°С‰Р°РµС‚ СЃРїРёСЃРѕРє РЅРµРѕР±СѓС‡РµРЅРЅС‹С… РјРѕРґРµР»РµР№</returns>
         List<UntrainedModel> GetUntrainedModels();
     }
 }
