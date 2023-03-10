@@ -6,23 +6,23 @@ namespace PSASH.Application.Services
     public interface ILearningService
     {
         /// <summary>
-        /// ќбучение модели
+        /// обучение модели
         /// </summary>
-        /// <param name="model">им¤ модели</param>
+        /// <param name="model">имя модели</param>
         /// <param name="options">параметры обучени¤</param>
         /// <returns>¬озвращает обученную модель</returns>
         TrainedModel TrainModel(UntrainedModel model, TrainOptions options);
 
         /// <summary>
-        /// ѕолучает обученные модели
+        /// получает обученные модели
         /// </summary>
-        /// <returns>¬озвращает список готовых моделей</returns>
+        /// <returns>возвращает список готовых моделей</returns>
         List<TrainedModel> GetTrainedModels();
 
         /// <summary>
-        /// ¬озвращает существующие модели дл¤ обучени¤
+        /// ¬озвращает существующие модели для обучения
         /// </summary>
-        /// <returns>¬озвращает список необученных моделей</returns>
+        /// <returns>возвращает список необученных моделей</returns>
         List<UntrainedModel> GetUntrainedModels();
     }
 }
