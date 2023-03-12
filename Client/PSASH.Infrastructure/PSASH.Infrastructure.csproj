@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PSASH.Application\PSASH.Application.csproj" />
+    <ProjectReference Include="..\Grpc.Client\Grpc.Client.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

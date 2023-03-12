@@ -1,8 +1,11 @@
 syntax = "proto3";
 package sending;
 
+import "google/protobuf/empty.proto";
+
 service DatasetSender {
-  rpc SendDataset(stream DatasetShard) returns (Response);
+  rpc SendDataset(stream DatasetShard) returns (SendResponse);
+  rpc GetLoadedDatasetNames(google.protobuf.Empty) returns (DatasetNames);
 }
 
 enum SendingStatus {
@@ -10,10 +13,12 @@ enum SendingStatus {
   ERROR = 1;
 }
 
-message Response {
+message SendResponse {
   string message = 1;
   SendingStatus status = 2;
 }
+
+message DatasetNames { repeated string names = 1; }
 
 message TimeSeries {
   string class_name = 1;
