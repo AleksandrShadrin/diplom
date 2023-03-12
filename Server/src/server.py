@@ -24,7 +24,7 @@ class Server:
     async def start(self) -> None:
         proto_generated.SendingService_pb2_grpc.add_DatasetSenderServicer_to_server(
             self.sending_service, self.server)
-        self.server.add_insecure_port('[::]:50051')
+        self.server.add_insecure_port('[::]:5000')
 
         await self.server.start()
 
@@ -35,7 +35,7 @@ class Server:
 
     async def __shutdown(self):
         print('Server stopping...')
-        await self.server.stop(5)
+        await self.server.stop(255)
         print('Server stopped')
 
     def __on_launch(self):

@@ -11,23 +11,26 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14SendingService.proto\x12\x07sending\"C\n\x08Response\x12\x0f\n\x07message\x18\x01 \x01(\t\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.sending.SendingStatus\"<\n\nTimeSeries\x12\x12\n\nclass_name\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\x01\"\x94\x01\n\x0c\x44\x61tasetShard\x12\x19\n\x0c\x64\x61taset_name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x1b\n\x0eupdate_dataset\x18\x02 \x01(\x08H\x01\x88\x01\x01\x12(\n\x0btime_series\x18\x03 \x01(\x0b\x32\x13.sending.TimeSeriesB\x0f\n\r_dataset_nameB\x11\n\x0f_update_dataset*\"\n\rSendingStatus\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x32J\n\rDatasetSender\x12\x39\n\x0bSendDataset\x12\x15.sending.DatasetShard\x1a\x11.sending.Response(\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14SendingService.proto\x12\x07sending\x1a\x1bgoogle/protobuf/empty.proto\"G\n\x0cSendResponse\x12\x0f\n\x07message\x18\x01 \x01(\t\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.sending.SendingStatus\"\x1d\n\x0c\x44\x61tasetNames\x12\r\n\x05names\x18\x01 \x03(\t\"<\n\nTimeSeries\x12\x12\n\nclass_name\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\x01\"\x94\x01\n\x0c\x44\x61tasetShard\x12\x19\n\x0c\x64\x61taset_name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x1b\n\x0eupdate_dataset\x18\x02 \x01(\x08H\x01\x88\x01\x01\x12(\n\x0btime_series\x18\x03 \x01(\x0b\x32\x13.sending.TimeSeriesB\x0f\n\r_dataset_nameB\x11\n\x0f_update_dataset*\"\n\rSendingStatus\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\x32\x96\x01\n\rDatasetSender\x12=\n\x0bSendDataset\x12\x15.sending.DatasetShard\x1a\x15.sending.SendResponse(\x01\x12\x46\n\x15GetLoadedDatasetNames\x12\x16.google.protobuf.Empty\x1a\x15.sending.DatasetNamesb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'SendingService_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _SENDINGSTATUS._serialized_start=315
-  _SENDINGSTATUS._serialized_end=349
-  _RESPONSE._serialized_start=33
-  _RESPONSE._serialized_end=100
-  _TIMESERIES._serialized_start=102
-  _TIMESERIES._serialized_end=162
-  _DATASETSHARD._serialized_start=165
-  _DATASETSHARD._serialized_end=313
-  _DATASETSENDER._serialized_start=351
-  _DATASETSENDER._serialized_end=425
+  _SENDINGSTATUS._serialized_start=379
+  _SENDINGSTATUS._serialized_end=413
+  _SENDRESPONSE._serialized_start=62
+  _SENDRESPONSE._serialized_end=133
+  _DATASETNAMES._serialized_start=135
+  _DATASETNAMES._serialized_end=164
+  _TIMESERIES._serialized_start=166
+  _TIMESERIES._serialized_end=226
+  _DATASETSHARD._serialized_start=229
+  _DATASETSHARD._serialized_end=377
+  _DATASETSENDER._serialized_start=416
+  _DATASETSENDER._serialized_end=566
 # @@protoc_insertion_point(module_scope)

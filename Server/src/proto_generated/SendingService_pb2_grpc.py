@@ -3,6 +3,7 @@
 import grpc
 
 from proto_generated import SendingService_pb2 as SendingService__pb2
+from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
 class DatasetSenderStub(object):
@@ -18,7 +19,13 @@ class DatasetSenderStub(object):
             '/sending.DatasetSender/SendDataset',
             request_serializer=SendingService__pb2.DatasetShard.
             SerializeToString,
-            response_deserializer=SendingService__pb2.Response.FromString,
+            response_deserializer=SendingService__pb2.SendResponse.FromString,
+        )
+        self.GetLoadedDatasetNames = channel.unary_unary(
+            '/sending.DatasetSender/GetLoadedDatasetNames',
+            request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.
+            SerializeToString,
+            response_deserializer=SendingService__pb2.DatasetNames.FromString,
         )
 
 
@@ -31,6 +38,12 @@ class DatasetSenderServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetLoadedDatasetNames(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_DatasetSenderServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -38,7 +51,16 @@ def add_DatasetSenderServicer_to_server(servicer, server):
         grpc.stream_unary_rpc_method_handler(
             servicer.SendDataset,
             request_deserializer=SendingService__pb2.DatasetShard.FromString,
-            response_serializer=SendingService__pb2.Response.SerializeToString,
+            response_serializer=SendingService__pb2.SendResponse.
+            SerializeToString,
+        ),
+        'GetLoadedDatasetNames':
+        grpc.unary_unary_rpc_method_handler(
+            servicer.GetLoadedDatasetNames,
+            request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.
+            FromString,
+            response_serializer=SendingService__pb2.DatasetNames.
+            SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -64,6 +86,24 @@ class DatasetSender(object):
         return grpc.experimental.stream_unary(
             request_iterator, target, '/sending.DatasetSender/SendDataset',
             SendingService__pb2.DatasetShard.SerializeToString,
-            SendingService__pb2.Response.FromString, options,
+            SendingService__pb2.SendResponse.FromString, options,
+            channel_credentials, insecure, call_credentials, compression,
+            wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetLoadedDatasetNames(request,
+                              target,
+                              options=(),
+                              channel_credentials=None,
+                              call_credentials=None,
+                              insecure=False,
+                              compression=None,
+                              wait_for_ready=None,
+                              timeout=None,
+                              metadata=None):
+        return grpc.experimental.unary_unary(
+            request, target, '/sending.DatasetSender/GetLoadedDatasetNames',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            SendingService__pb2.DatasetNames.FromString, options,
             channel_credentials, insecure, call_credentials, compression,
             wait_for_ready, timeout, metadata)

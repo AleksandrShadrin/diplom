@@ -10,7 +10,7 @@ from appdirs import user_data_dir
 import os
 import shutil
 from dacite import from_dict
-from typing import Union
+from typing import List, Union
 
 
 class JsonDatasetService(BaseDatasetService):
@@ -66,6 +66,19 @@ class JsonDatasetService(BaseDatasetService):
         ]
 
         return Dataset(timeseries_list, dataset_name)
+
+    def get_dataset_names(self) -> List[str]:
+        """get names of datasets in storage
+        
+        returns:
+        List[str] - list of dataset names
+        """
+
+        datasets_path = self._get_datasets_folder()
+        if os.path.exists(datasets_path) is False:
+            os.makedirs(datasets_path)
+
+        return os.listdir(datasets_path)
 
     def _load_file(self, path: str) -> TimeSeries:
         """Load TimeSeries from file

@@ -16,5 +16,4 @@ if __name__ == '__main__':
 
     app_container.init_resources()
     app_container.wire(modules=[__name__])
-
     main()

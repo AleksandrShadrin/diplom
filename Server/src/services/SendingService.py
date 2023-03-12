@@ -1,10 +1,11 @@
 from proto_generated.SendingService_pb2_grpc import DatasetSenderServicer
-from proto_generated.SendingService_pb2 import DatasetShard, Response, SendingStatus
 from models.Result import Result
 from models.Dataset import Dataset
 from models.TimeSeries import TimeSeries
 from services.BaseDatasetService import BaseDatasetService
-from typing import Iterator, List
+from typing import List, Iterable
+from models.SendResponse import SendResponse, Status
+import proto_generated.SendingService_pb2
 
 
 class SendingService(DatasetSenderServicer):
@@ -13,21 +14,24 @@ class SendingService(DatasetSenderServicer):
         self.dataset_service = dataset_service
         super().__init__()
 
-    async def SendDataset(self, request_iterator: Iterator[DatasetShard],
-                          context) -> Response:
+    async def SendDataset(
+            self, request_iterator: Iterable[
+                proto_generated.SendingService_pb2.TimeSeries],
+            context) -> proto_generated.SendingService_pb2.SendResponse:
+
         time_series_list: List[TimeSeries] = []
         dataset_name: str = ''
         update_dataset: bool = False
 
-        for dshard in request_iterator:
+        async for dshard in request_iterator:
             if dshard.HasField('dataset_name'):
                 dataset_name = dshard.dataset_name
             if dshard.HasField('update_dataset'):
                 update_dataset = dshard.update_dataset
 
-            time_series = TimeSeries(dshard.time_series.values,
-                                     dshard.time_series.class_name,
-                                     dshard.time_series.id)
+            time_series = TimeSeries(
+                [value for value in dshard.time_series.values],
+                dshard.time_series.class_name, dshard.time_series.id)
 
             time_series_list.append(time_series)
 
@@ -37,7 +41,15 @@ class SendingService(DatasetSenderServicer):
         result = self.dataset_service.save_dataset(rewrite=update_dataset)
 
         if result == Result.ERROR:
-            return Response("something went wrong, try again",
-                            SendingStatus.ERROR)
+            return SendResponse(
+                message="something went wrong, try again",
+                status=Status.ERROR).convert_to_grpc_send_response()
+
         elif result == Result.OK:
-            return Response("dataset successfully loaded", SendingStatus.OK)
+            return SendResponse(
+                message="dataset successfully loaded",
+                status=Status.OK).convert_to_grpc_send_response()
+
+    def GetLoadedDatasetNames(self, request, context):
+        return proto_generated.SendingService_pb2.DatasetNames(
+            names=self.dataset_service.get_dataset_names())
