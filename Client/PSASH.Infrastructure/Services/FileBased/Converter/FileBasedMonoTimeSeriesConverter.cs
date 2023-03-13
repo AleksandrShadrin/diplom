@@ -6,10 +6,15 @@ using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using NAudio;
+using System;
+using NAudio.Utils;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace PSASH.Infrastructure.Services.FileBased.Converter
 {
-    internal class FileBasedMonoTimeSeriesConverter :
+    public class FileBasedMonoTimeSeriesConverter :
         ITimeSeriesConverter<string, MonoTimeSeries>
     {
         /// <summary>
@@ -20,11 +25,16 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
         /// <exception cref="NotImplementedException"></exception>
         public MonoTimeSeries Convert(string input)
         {
+            if (!File.Exists(input))
+            {
+                throw new ThisFileWasNotFound();
+            }
             string ext = Path.GetExtension(input);
-            if (ext == ".csv") {
+            if (ext == ".csv")
+            {
                 return CSVProcessig(input);
             }
-            if (ext == ".wav")
+            else if (ext == ".wav")
             {
                 return WAVProcessing(input);
             }
@@ -32,7 +42,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             {
                 throw new FileExtensionNotSupportedException();
             }
-            
+
         }
 
         private MonoTimeSeries WAVProcessing(string input)
@@ -40,15 +50,17 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             MonoTimeSeries mono;
             using (NAudio.Wave.WaveFileReader wave = new NAudio.Wave.WaveFileReader(input))
             {
+                //var mixer = new MixingSampleProvider()
+                //WaveFileWriter.CreateWaveFile()
                 List<double> valuesWAV = new List<double>();
                 byte[] data = new byte[wave.Length];
                 int read = wave.Read(data, 0, data.Length);
                 for (int i = 0; i < read; i += 2)
                 {
-                    valuesWAV.Add(BitConverter.ToInt16(data, i) / (wave.WaveFormat.SampleRate * 2));
+                    valuesWAV.Add(BitConverter.ToInt16(data, i) / (double)(wave.WaveFormat.SampleRate * 2));
                 }
-                string[] parserPath = input.Split(new char[] { Path.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
-                TimeSeriesInfo info = new TimeSeriesInfo(parserPath[parserPath.Length - 1], parserPath[parserPath.Length]);
+                
+                TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
                 mono = new MonoTimeSeries(valuesWAV, info);
             }
             return mono;
@@ -56,37 +68,77 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
 
         private MonoTimeSeries CSVProcessig(string input)
         {
+            
             MonoTimeSeries mono;
+
             using (var parser = new TextFieldParser(input))
             {
+                //
                 List<double> valuesCSV = new List<double>();
                 var delimiter = ";";
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(delimiter);
-                while (!parser.EndOfData)
+
+                // Получить текст файла.
+                //var whole_file = File.ReadAllText(input);
+
+                //for (int i = 0; i < whole_file.Length; i++)
+                //{
+                //    var lineSt = line.Split(';');
+
+                //    if (lineSt.Length == 1) 
+                //    {
+                //        valuesCSV.Add(ParseToDouble(lineSt.First(), input));
+                //    }
+                //}
+
+                // Получить текст файла.
+                string whole_file = File.ReadAllText(input);
+
+                // Разделение на строки.
+                whole_file = whole_file.Replace('\n', '\r');
+                string[] lines = whole_file.Split(new char[] { '\r' },
+                    StringSplitOptions.RemoveEmptyEntries);
+
+                // Посмотрим, сколько строк и столбцов есть.
+                double num;
+                int num_cols = lines[0].Split('.').Length;
+                if (num_cols == 1)
                 {
-                    string[] fields = parser.ReadFields();
-                    if (fields.Length > 1)
+                    if (double.TryParse(lines[0], out num))
                     {
-                        throw new CantConvertToMonoFileException(input);
-                    }
-                    if (double.TryParse(fields[0], CultureInfo.InvariantCulture, out var result))
-                    {
-                        valuesCSV.Add(result);
+                        for (int i = 0; i < lines.Length; i++)
+                        {
+                            valuesCSV.Add(double.Parse(lines[i]));
+                        }
+
                     }
                     else
                     {
-                        throw new CantConvertToMonoFileException(input);
-
+                        for (int i = 1; i < lines.Length; i++)
+                        {
+                            valuesCSV.Add(double.Parse(lines[i]));
+                        }
                     }
                 }
+                else
+                {
+                    throw new CantConvertToMonoFileException(input);
+                }
 
-                string[] parserPath = input.Split(new char[] { Path.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
-                TimeSeriesInfo info = new TimeSeriesInfo(parserPath[parserPath.Length - 1], parserPath[parserPath.Length]);
+                TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
                 mono = new MonoTimeSeries(valuesCSV, info);
             }
+
             return mono;
         }
+
+        //private double ParseToDouble(string str, string input)
+        //{
+        //    double number;
+        //    if (double.TryParse(str, CultureInfo.InvariantCulture, out number))
+        //        return number;
+        //    throw new CantConvertToMonoFileException(input);
+        //}
+        
 
         private enum AvailableExtensions
         {
