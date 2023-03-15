@@ -1,6 +1,6 @@
 ﻿namespace Grpc.Client.Models
 {
-    public record DatasetShard(bool UpdateDataset, string DatasetName, TimeSeries TimeSeries)
+    public record DatasetShard(bool UpdateDataset, string DatasetName, TimeSeriesDto TimeSeries)
     {
         public Sending.DatasetShard ToGrpcDatasetShard()
         {

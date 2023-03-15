@@ -9,12 +9,12 @@ namespace PSASH.Infrastructure.Services
         /// </summary>
         /// <param name="modelName">имя модели</param>
         /// <returns>Возвращает TrainedModel</returns>
-        TrainedModel LoadModel(string modelName);
+        Task<TrainedModel> LoadModel(string modelName);
 
         /// <summary>
         /// Загружает все обученные модели
         /// </summary>
         /// <returns>Возвращает список TrainedModel</returns>
-        List<TrainedModel> LoadModels();
+        Task<List<TrainedModel>> LoadModels();
     }
 }

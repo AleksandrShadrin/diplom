@@ -1,4 +1,4 @@
-Remove-Item requirements.txt
+Remove-Item ./src/requirements.txt
 ./venv/Scripts/activate
-pip freeze > requirements.txt
+pip freeze > ./src/requirements.txt
 deactivate

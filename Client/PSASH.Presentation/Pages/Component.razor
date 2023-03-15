@@ -1,0 +1,9 @@
+﻿@page "/input"
+
+<PSASH.Presentation.Components.Explorer @bind-SelectedItem="@Value" ShowFiles="false"></PSASH.Presentation.Components.Explorer>
+<RadzenText TextStyle="TextStyle.DisplayH3">@Value</RadzenText>
+
+@code {
+    public string Value { get; set; } = String.Empty;
+
+}

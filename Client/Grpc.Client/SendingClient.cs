@@ -7,9 +7,9 @@ namespace Grpc.Client
     {
         private readonly GrpcChannel _channel;
 
-        public SendingClient(string url)
+        public SendingClient(GrpcChannel channel)
         {
-            _channel = GrpcChannel.ForAddress(url);
+            _channel = channel;
         }
 
         public void Dispose()
@@ -17,24 +17,35 @@ namespace Grpc.Client
             _channel.Dispose();
         }
 
+        public async Task<List<string>> GetLoadedDatasetNames()
+        {
+            var client = new DatasetSender.DatasetSenderClient(_channel);
+
+            var names = await client
+                .GetLoadedDatasetNamesAsync(new
+                    Google.Protobuf.WellKnownTypes.Empty());
+
+            return names.Names.ToList();
+        }
+
         public async Task<Models.Response> SendDataset(IEnumerable<Models.DatasetShard> datasetShards)
         {
             var client = new DatasetSender.DatasetSenderClient(_channel);
-            
-            using (var call = client.SendDataset())
+
+            using var call = client.SendDataset();
+
+            foreach (var datasetShard in datasetShards)
             {
-                foreach (var datasetShard in datasetShards)
-                {
-                    var datashard = datasetShard.ToGrpcDatasetShard();
-                    await call.RequestStream.WriteAsync(datashard);
-                }
-
-                await call.RequestStream.CompleteAsync();
-
-                var res = await call;
-
-                return Models.Response.FromProtobufResponse(res);
+                var dataShard = datasetShard.ToGrpcDatasetShard();
+                await call.RequestStream.WriteAsync(dataShard);
             }
+
+            await call.RequestStream.CompleteAsync();
+
+            var res = await call;
+
+            return Models.Response.FromProtobufResponse(res);
+
         }
     }
 }

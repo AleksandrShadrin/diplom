@@ -1,0 +1,33 @@
+﻿@using PSASH.Presentation.Components;
+@inherits LayoutComponentBase
+@inject DialogService DialogService
+
+<PageTitle>PSASH.Presentation</PageTitle>
+<RadzenDialog />
+<RadzenNotification />
+
+<div class="page">
+    <RadzenHeader>
+        <div class="px-4">
+            <RadzenMenu>
+                <RadzenMenuItem Text="Actions" Icon="home">
+                    <RadzenMenuItem @onclick:preventDefault="true" Text="SelectFolder" Icon="folder" Click="SelectFolder"></RadzenMenuItem>
+                    <RadzenButton Click="@SelectFolder">Select</RadzenButton>
+                </RadzenMenuItem>
+            </RadzenMenu>
+        </div>
+    </RadzenHeader>
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    async Task SelectFolder()
+    {
+        var result = await DialogService
+            .OpenAsync("Folder selector", ds => @<FolderSelector OnConfirm="@(() => ds.Close(true))" />);
+    }
+}

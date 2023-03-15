@@ -20,20 +20,20 @@ namespace PSASH.Infrastructure.Services
             _trainedModelsLoader = trainedModelsLoader;
         }
 
-        public List<TrainedModel> GetTrainedModels()
-            => _trainedModelsLoader.LoadModels();
+        public async Task<List<TrainedModel>> GetTrainedModels()
+            => await _trainedModelsLoader.LoadModels();
 
-        public List<UntrainedModel> GetUntrainedModels()
-            => _modelTrainer.GetUntrainedModels();
+        public async Task<List<UntrainedModel>> GetUntrainedModels()
+            => await _modelTrainer.GetUntrainedModels();
 
-        public TrainedModel TrainModel(UntrainedModel model, TrainOptions options)
+        public async Task<TrainedModel> TrainModel(UntrainedModel model, TrainOptions options)
         {
             var dataset = _datasetService.LoadDataset();
             var timeSeries = dataset
                 .GetValues()
                 .Select(tsi => _datasetService.LoadTimeSeries(tsi));
 
-            var result = _modelTrainer
+            var result = await _modelTrainer
                 .TrainModel(model,
                     dataset.Name,
                     timeSeries.ToList());

@@ -11,11 +11,18 @@ namespace PSASH.Infrastructure.Services
         /// <param name="datasetName">Имя датасета</param>
         /// <param name="timeSeries">Список временных рядов</param>
         /// <returns>Возвращает TrainedModel</returns>
-        TrainedModel TrainModel(UntrainedModel model, string datasetName, List<MonoTimeSeries> timeSeries);
+        Task<TrainedModel> TrainModel(UntrainedModel model, string datasetName, List<MonoTimeSeries> timeSeries);
         /// <summary>
         /// Возвращает готовые к обучению модели
         /// </summary>
         /// <returns>Возвращает список UntrainedModel</returns>
-        List<UntrainedModel> GetUntrainedModels();
+        Task<List<UntrainedModel>> GetUntrainedModels();
+        /// <summary>
+        /// Возвращает имена загруженных наборов данных
+        /// </summary>
+        /// <returns>
+        /// Возвращает строковый список
+        /// </returns>
+        Task<List<string>> GetDatasetNames();
     }
 }

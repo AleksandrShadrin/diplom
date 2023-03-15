@@ -1,6 +1,6 @@
 ﻿namespace Grpc.Client.Models
 {
-    public record TimeSeries(List<double> Values, string Id, string ClassName)
+    public record TimeSeriesDto(List<double> Values, string Id, string ClassName)
     {
         internal Sending.TimeSeries ToGrpcTimeSeries()
         {

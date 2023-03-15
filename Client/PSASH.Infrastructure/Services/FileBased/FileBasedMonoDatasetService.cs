@@ -13,7 +13,11 @@ namespace PSASH.Infrastructure.Services.FileBased
 
         public FileBasedMonoDatasetService(ITimeSeriesConverter<string, MonoTimeSeries> timeSeriesConverter)
         {
-            _timeSeriesConverter = timeSeriesConverter;
+            _timeSeriesConverter = timeSeriesConverter is null ?
+                throw new ArgumentNullException(
+                    nameof(timeSeriesConverter),
+                    "Converter can't be null") :
+                timeSeriesConverter;
         }
 
         /// <summary>
@@ -57,7 +61,7 @@ namespace PSASH.Infrastructure.Services.FileBased
             if (_dataset is null)
                 throw new DatasetNotLoadedException();
 
-            if(_dataset.GetValues().Any(tsi => tsi == info))
+            if (_dataset.GetValues().Any(tsi => tsi == info))
             {
                 var filePath = GetFilePath(info);
                 return _timeSeriesConverter.Convert(filePath);

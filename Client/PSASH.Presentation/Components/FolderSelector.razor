@@ -1,0 +1,42 @@
+﻿@using PSASH.Infrastructure.Exceptions;
+@using PSASH.Infrastructure.Services.FileBased;
+@inject IFileBasedMonoDatasetService filebasedMonoDatasetService
+@inject NotificationService NotificationService
+
+<div>
+    <Explorer ShowFiles="false" SelectedItemChanged="OnFolderSelection"></Explorer>
+    <RadzenButton Text="Select" ButtonStyle="ButtonStyle.Success" class="my-2" Click="ConfirmSelection"></RadzenButton>
+</div>
+
+@code {
+    [Parameter]
+    public Action OnConfirm { get; set; }
+
+    private string choosenPath = string.Empty;
+
+    void OnFolderSelection(string folder)
+    {
+        choosenPath = folder;
+    }
+
+    void ConfirmSelection()
+    {
+        try
+        {
+            filebasedMonoDatasetService.SetPath(choosenPath);
+            OnConfirm?.Invoke();
+        }
+        catch (InfrastructureException ex)
+        {
+            var notification = new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Wrong Path",
+                    Detail = ex.Message,
+                    Duration = 4000
+                };
+
+            NotificationService.Notify(notification);
+        }
+    }
+}
