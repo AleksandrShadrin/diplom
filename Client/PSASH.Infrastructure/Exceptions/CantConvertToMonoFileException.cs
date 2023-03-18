@@ -2,7 +2,7 @@
 {
     internal class CantConvertToMonoFileException : InfrastructureException
     {
-        public CantConvertToMonoFileException(string path) 
+        public CantConvertToMonoFileException() 
             : base($"Данный файл не вохможно конвертировать в одиночный временной ряд")
         {
         }

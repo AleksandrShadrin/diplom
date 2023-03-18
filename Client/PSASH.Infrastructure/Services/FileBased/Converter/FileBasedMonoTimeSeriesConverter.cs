@@ -25,11 +25,11 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
         /// <exception cref="NotImplementedException"></exception>
         public MonoTimeSeries Convert(string input)
         {
+            string ext = Path.GetExtension(input);
             if (!File.Exists(input))
             {
                 throw new ThisFileWasNotFound();
             }
-            string ext = Path.GetExtension(input);
             if (ext == ".csv")
             {
                 return CSVProcessig(input);
@@ -65,68 +65,64 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             }
             return mono;
         }
+        //private List<double> method()
+        //{
+        //    var path = ".";
 
+        //    var lines = File.ReadLines(path);
+
+        //    if (FirstLineIsHeader(lines.First()))
+        //        lines = lines
+        //            .Skip(1);
+
+        //    return lines
+        //            .Skip(1)
+        //            .Select(TryParseToDouble)
+        //            .ToList();
+        //}
+
+        bool FirstLineIsHeader(string line)
+        {
+            double num;
+            if (double.TryParse(line, out num))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        double TryParseToDouble(string line)
+        {
+            double num;
+            if (double.TryParse(line, out num))
+            {
+                return num;
+            }
+            else
+            {
+                throw new CantConvertToMonoFileException();
+            }
+        }
         private MonoTimeSeries CSVProcessig(string input)
         {
             
             MonoTimeSeries mono;
+            var lines = File.ReadLines(input);
 
-            using (var parser = new TextFieldParser(input))
-            {
-                //
-                List<double> valuesCSV = new List<double>();
-                var delimiter = ";";
+            if (FirstLineIsHeader(lines.First()))
+                lines = lines
+                    .Skip(1);
 
-                // Получить текст файла.
-                //var whole_file = File.ReadAllText(input);
+            var values = lines
+               .Select(TryParseToDouble)
+               .ToList();
 
-                //for (int i = 0; i < whole_file.Length; i++)
-                //{
-                //    var lineSt = line.Split(';');
+            TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
+            mono = new MonoTimeSeries(values, info);
 
-                //    if (lineSt.Length == 1) 
-                //    {
-                //        valuesCSV.Add(ParseToDouble(lineSt.First(), input));
-                //    }
-                //}
-
-                // Получить текст файла.
-                string whole_file = File.ReadAllText(input);
-
-                // Разделение на строки.
-                whole_file = whole_file.Replace('\n', '\r');
-                string[] lines = whole_file.Split(new char[] { '\r' },
-                    StringSplitOptions.RemoveEmptyEntries);
-
-                // Посмотрим, сколько строк и столбцов есть.
-                double num;
-                int num_cols = lines[0].Split('.').Length;
-                if (num_cols == 1)
-                {
-                    if (double.TryParse(lines[0], out num))
-                    {
-                        for (int i = 0; i < lines.Length; i++)
-                        {
-                            valuesCSV.Add(double.Parse(lines[i]));
-                        }
-
-                    }
-                    else
-                    {
-                        for (int i = 1; i < lines.Length; i++)
-                        {
-                            valuesCSV.Add(double.Parse(lines[i]));
-                        }
-                    }
-                }
-                else
-                {
-                    throw new CantConvertToMonoFileException(input);
-                }
-
-                TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
-                mono = new MonoTimeSeries(valuesCSV, info);
-            }
 
             return mono;
         }
