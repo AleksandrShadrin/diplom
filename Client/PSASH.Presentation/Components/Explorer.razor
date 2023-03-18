@@ -1,0 +1,88 @@
+﻿@using System.IO
+
+<RadzenCard>
+    <RadzenTree Data=@entries Expand=@LoadFiles Style="width: 100%; height: 300px" Change="@OnSelect">
+        <RadzenTreeLevel Text=@GetTextForNode Template=@FileOrFolderTemplate />
+    </RadzenTree>
+</RadzenCard>
+
+@code {
+    [Parameter]
+    public bool ShowFiles { get; set; } = true;
+
+    [Parameter]
+    public IEnumerable<string> beginEntries { get; set; } = Environment.GetLogicalDrives();
+
+    [Parameter]
+    public string SelectedItem { get; set; } = String.Empty;
+
+    [Parameter]
+    public EventCallback<string> SelectedItemChanged { get; set; }
+
+    private IEnumerable<string> entries { get; set; }
+
+    protected override void OnInitialized()
+    {
+        entries = beginEntries;
+    }
+
+    void LoadFiles(TreeExpandEventArgs args)
+    {
+        var directory = args.Value as string;
+
+        args.Children.Data = EnumerateDirectoryForAvailableEntries(directory);
+        args.Children.Text = GetTextForNode;
+        args.Children.HasChildren = (path) => Directory.Exists((string)path);
+        args.Children.Template = FileOrFolderTemplate;
+    }
+
+    async Task OnSelect(TreeEventArgs args)
+    {
+        var value = args.Value as string;
+
+        await SelectedItemChanged.InvokeAsync(value);
+    }
+
+    bool IsFolder(object @object)
+    {
+        var path = @object as string;
+
+        return File.GetAttributes(path).HasFlag(FileAttributes.Directory);
+    }
+
+    IEnumerable<string> EnumerateDirectoryForAvailableEntries(string directory)
+    {
+        var directories = Directory
+            .GetDirectories(directory)
+            .Select(path => new DirectoryInfo(path))
+            .Where(di => (di.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0)
+            .Select(di => di.FullName);
+
+        if (ShowFiles)
+        {
+            var files = Directory.GetFiles(directory);
+            return directories.Concat(files).Order();
+        }
+
+        return directories;
+    }
+
+    string GetTextForNode(object data)
+    {
+        if (Environment.GetLogicalDrives().Contains((string)data))
+            return (string)data;
+
+        return Path.GetFileName((string)data);
+    }
+
+    RenderFragment<RadzenTreeItem> FileOrFolderTemplate = (context) => builder =>
+    {
+        string path = context.Value as string;
+        bool isDirectory = Directory.Exists(path);
+
+        builder.OpenComponent<RadzenIcon>(0);
+        builder.AddAttribute(1, nameof(RadzenIcon.Icon), isDirectory ? "folder" : "insert_drive_file");
+        builder.CloseComponent();
+        builder.AddContent(3, context.Text);
+    };
+}

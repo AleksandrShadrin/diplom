@@ -8,12 +8,16 @@ namespace PSASH.Infrastructure.Services.FileBased
     public class FileBasedMonoDatasetService : IFileBasedMonoDatasetService
     {
         private string _path = String.Empty;
-        private Dataset _dataset;
+        private Dataset? _dataset;
         private readonly ITimeSeriesConverter<string, MonoTimeSeries> _timeSeriesConverter;
 
         public FileBasedMonoDatasetService(ITimeSeriesConverter<string, MonoTimeSeries> timeSeriesConverter)
         {
-            _timeSeriesConverter = timeSeriesConverter;
+            _timeSeriesConverter = timeSeriesConverter is null ?
+                throw new ArgumentNullException(
+                    nameof(timeSeriesConverter),
+                    "Converter can't be null") :
+                timeSeriesConverter;
         }
 
         /// <summary>
@@ -29,16 +33,21 @@ namespace PSASH.Infrastructure.Services.FileBased
 
             foreach (var directory in Directory.GetDirectories(_path))
             {
+                var directoryName = new DirectoryInfo(directory).Name;
+
                 var timeSeriesInfoForDirectory =
                     Directory
                         .GetFiles(directory)
                         .Select(Path.GetFileNameWithoutExtension)
-                        .Select(fn => new TimeSeriesInfo(directory, fn));
+                        .Select(fn => new TimeSeriesInfo(directoryName, fn));
 
                 timeSeriesInfoList.AddRange(timeSeriesInfoForDirectory);
             }
 
-            return new Dataset(timeSeriesInfoList, datasetName);
+            var dataset = new Dataset(timeSeriesInfoList, datasetName);
+            _dataset = dataset;
+
+            return dataset;
         }
 
         /// <summary>
@@ -46,10 +55,19 @@ namespace PSASH.Infrastructure.Services.FileBased
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <exception cref="DatasetNotLoadedException"></exception>
         public MonoTimeSeries LoadTimeSeries(TimeSeriesInfo info)
         {
-            throw new NotImplementedException();
+            if (_dataset is null)
+                throw new DatasetNotLoadedException();
+
+            if (_dataset.GetValues().Any(tsi => tsi == info))
+            {
+                var filePath = GetFilePath(info);
+                return _timeSeriesConverter.Convert(filePath);
+            }
+
+            throw new TimeSeriesDontExistException(info);
         }
 
         /// <summary>
@@ -70,6 +88,8 @@ namespace PSASH.Infrastructure.Services.FileBased
 
             _path = path;
         }
+
+        #region Private Methods
 
         /// <summary>
         /// Проверка структуры датасета 
@@ -101,8 +121,17 @@ namespace PSASH.Infrastructure.Services.FileBased
             {
                 throw new DatasetStructureInvalidException(path);
             }
+        }
 
+        private string GetFilePath(TimeSeriesInfo info)
+        {
+            var path = Path.Combine(_path, info.Class);
+            var fileExt = Path.GetExtension(Directory
+                .GetFiles(path)
+                .FirstOrDefault());
 
+            return fileExt is null ?
+                "" : Path.Combine(path, info.id + fileExt);
         }
 
         private SameExt FilesExtensionsTheSame(string directory)
@@ -127,6 +156,11 @@ namespace PSASH.Infrastructure.Services.FileBased
             return new(current_ext, true);
         }
 
-        record SameExt(string Ext, bool IsSame);
+        #endregion
+
+        /// <summary />
+        /// <param name="Ext">Расширение файлов в папке</param>
+        /// <param name="IsSame">Расширения в папке одинаковые</param>
+        private record SameExt(string Ext, bool IsSame);
     }
 }
