@@ -1,0 +1,38 @@
+﻿@using PSASH.Presentation.Models;
+
+<RadzenTree class="w-100">
+    @foreach (var timeSeriesClass in GetClasses())
+    {
+        <RadzenTreeItem Text="@timeSeriesClass" class="w-auto ms-4">
+            <ChildContent>
+                @foreach (var ts in TimeSeries
+               .Where(ts => ts.Name.ToTimeSeriesInfo().Class == timeSeriesClass))
+                {
+                    <RadzenCard Style="cursor:pointer;" class="w-100 my-3">
+                        <RadzenText class="text-center text">
+                            @ts.Name
+                        </RadzenText> 
+                    </RadzenCard>
+                }
+            </ChildContent>
+        </RadzenTreeItem>
+    }
+</RadzenTree>
+
+
+@code {
+    [Parameter]
+    public IEnumerable<TimeSeriesDto> TimeSeries { get; set; }
+
+    [Parameter]
+    public EventCallback<List<TimeSeriesDto>> TimeSeriesChanged { get; set; }
+
+    [Parameter]
+    public TimeSeriesDto Selected { get; set; }
+
+    private List<string> GetClasses()
+         => TimeSeries
+                .Select(ts => ts.Name.ToTimeSeriesInfo().Class)
+                .Distinct()
+                .ToList();
+}

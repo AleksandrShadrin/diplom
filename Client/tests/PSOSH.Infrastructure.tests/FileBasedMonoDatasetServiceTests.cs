@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using PSASH.Core.Entities;
+using PSASH.Core.ValueObjects;
 using PSASH.Infrastructure.Exceptions;
 using PSASH.Infrastructure.Services.FileBased;
 using PSASH.Infrastructure.Services.FileBased.Converter;
@@ -58,8 +60,7 @@ namespace PSOSH.Infrastructure.tests
             };
 
             // Assert
-            act
-                .Should()
+            act.Should()
                 .NotThrow<DatasetStructureInvalidException>();
         }
 
@@ -97,6 +98,130 @@ namespace PSOSH.Infrastructure.tests
                 .GetValues()
                 .Should()
                 .HaveCount(count * count, $"because files in each folder is {count} and folders count is {count}");
+        }
+
+        [Fact]
+        public void Dataset_With_Files_Of_Different_Extensions_Should_Throw_DatasetStructureInvalidException()
+        {
+            // Arrange
+            var name = "Dataset_With_Files_Of_Different_Extensions_Should_Throw_DatasetStructureInvalidException";
+            var count = 10;
+            var tempPath = Path
+                .Combine(Path.GetTempPath(),
+                name);
+
+            CreateDirectoryWithPathAndFilesExtension(tempPath,
+                "ext",
+                count,
+                count);
+
+            File.Create(Path.Combine(tempPath, "1", "1" + ".incorrect"));
+
+            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+
+            var fileBasedMonoDatasetService =
+                new FileBasedMonoDatasetService(converter);
+
+            // Act
+            fileBasedMonoDatasetService.SetPath(tempPath);
+            var act = () => fileBasedMonoDatasetService.LoadDataset();
+
+            // Assert
+            act.Should()
+                .Throw<DatasetStructureInvalidException>("because dataset structure is invalid");
+        }
+
+        [Fact]
+        public void When_Dataset_Not_Loaded_LoadTimeSeries_Should_Throw_DatasetNotLoadedException()
+        {
+            // Arrange
+            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+
+            var fileBasedMonoDatasetService =
+                new FileBasedMonoDatasetService(converter);
+
+            // Act
+            var act = () => fileBasedMonoDatasetService.LoadTimeSeries(new
+                TimeSeriesInfo("1", "1"));
+
+            // Assert 
+            act.Should()
+                .Throw<DatasetNotLoadedException>("Dataset wasn't loaded");
+        }
+
+        [Fact]
+        public void On_LoadTimeSeries_TimeSeriesConverter_Should_Get_Valid_FileName()
+        {
+            // Arrange
+            var name = "On_LoadTimeSeries_TimeSeriesConverter_Should_Get_Valid_FileName";
+            var count = 10;
+            var tempPath = Path
+                .Combine(Path.GetTempPath(),
+                name);
+
+            CreateDirectoryWithPathAndFilesExtension(tempPath,
+                "ext",
+                count,
+                count);
+
+            var timeSeriesInfo = new TimeSeriesInfo("1", "1");
+
+            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+
+            converter
+                .Convert(Arg.Any<string>())
+                .Returns(new MonoTimeSeries(Enumerable.Empty<double>(), timeSeriesInfo));
+
+            var fileBasedMonoDatasetService =
+                new FileBasedMonoDatasetService(converter);
+
+            // Act
+            fileBasedMonoDatasetService.SetPath(tempPath);
+            fileBasedMonoDatasetService.LoadDataset();
+            fileBasedMonoDatasetService.LoadTimeSeries(timeSeriesInfo);
+
+
+            // Assert
+            converter
+                .Received(1)
+                .Convert($"{tempPath}{Path.DirectorySeparatorChar}1{Path.DirectorySeparatorChar}1.ext");
+        }
+
+        [Fact]
+        public void When_TimeSeriesInfo_Of_Dont_Existed_File_LoadTimeSeries_Should_Throw_TimeSeriesDontExistException()
+        {
+            // Arrange
+            var name = "When_TimeSeriesInfo_Of_Dont_Existed_File_LoadTimeSeries_Should_Throw_TimeSeriesDontExistException";
+            var count = 10;
+            var tempPath = Path
+                .Combine(Path.GetTempPath(),
+                name);
+
+            CreateDirectoryWithPathAndFilesExtension(tempPath,
+                "ext",
+                count,
+                count);
+
+            var timeSeriesInfo = new TimeSeriesInfo("1", "11");
+
+            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+
+            var fileBasedMonoDatasetService =
+                new FileBasedMonoDatasetService(converter);
+
+            // Act
+            fileBasedMonoDatasetService.SetPath(tempPath);
+            fileBasedMonoDatasetService.LoadDataset();
+            var act = () => fileBasedMonoDatasetService.LoadTimeSeries(timeSeriesInfo);
+
+
+            // Assert
+            act.Should()
+                .Throw<TimeSeriesDontExistException>()
+                .Which
+                .Message
+                .Should()
+                .Be("TimeSereis with class: 1 and id: 11 don't exist", "because class was given as 1 and id as 11");
         }
 
         #region ARRANGE

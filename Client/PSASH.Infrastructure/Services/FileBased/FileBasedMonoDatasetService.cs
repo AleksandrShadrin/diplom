@@ -8,18 +8,22 @@ namespace PSASH.Infrastructure.Services.FileBased
     public class FileBasedMonoDatasetService : IFileBasedMonoDatasetService
     {
         private string _path = String.Empty;
-        private Dataset _dataset;
+        private Dataset? _dataset;
         private readonly ITimeSeriesConverter<string, MonoTimeSeries> _timeSeriesConverter;
 
         public FileBasedMonoDatasetService(ITimeSeriesConverter<string, MonoTimeSeries> timeSeriesConverter)
         {
-            _timeSeriesConverter = timeSeriesConverter;
+            _timeSeriesConverter = timeSeriesConverter is null ?
+                throw new ArgumentNullException(
+                    nameof(timeSeriesConverter),
+                    "Converter can't be null") :
+                timeSeriesConverter;
         }
 
         /// <summary>
-        /// Загрузка датасета
+        /// Р—Р°РіСЂСѓР·РєР° РґР°С‚Р°СЃРµС‚Р°
         /// </summary>
-        /// <returns>Возвращает Dataset</returns>
+        /// <returns>Р’РѕР·РІСЂР°С‰Р°РµС‚ Dataset</returns>
         public Dataset LoadDataset()
         {
             ValidateDatasetStructure(_path);
@@ -29,37 +33,51 @@ namespace PSASH.Infrastructure.Services.FileBased
 
             foreach (var directory in Directory.GetDirectories(_path))
             {
+                var directoryName = new DirectoryInfo(directory).Name;
+
                 var timeSeriesInfoForDirectory =
                     Directory
                         .GetFiles(directory)
                         .Select(Path.GetFileNameWithoutExtension)
-                        .Select(fn => new TimeSeriesInfo(directory, fn));
+                        .Select(fn => new TimeSeriesInfo(directoryName, fn));
 
                 timeSeriesInfoList.AddRange(timeSeriesInfoForDirectory);
             }
 
-            return new Dataset(timeSeriesInfoList, datasetName);
+            var dataset = new Dataset(timeSeriesInfoList, datasetName);
+            _dataset = dataset;
+
+            return dataset;
         }
 
         /// <summary>
-        /// Загрузить временной ряд по его информации
+        /// Р—Р°РіСЂСѓР·РёС‚СЊ РІСЂРµРјРµРЅРЅРѕР№ СЂСЏРґ РїРѕ РµРіРѕ РёРЅС„РѕСЂРјР°С†РёРё
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <exception cref="DatasetNotLoadedException"></exception>
         public MonoTimeSeries LoadTimeSeries(TimeSeriesInfo info)
         {
-            throw new NotImplementedException();
+            if (_dataset is null)
+                throw new DatasetNotLoadedException();
+
+            if (_dataset.GetValues().Any(tsi => tsi == info))
+            {
+                var filePath = GetFilePath(info);
+                return _timeSeriesConverter.Convert(filePath);
+            }
+
+            throw new TimeSeriesDontExistException(info);
         }
 
         /// <summary>
-        /// Назначение пути к датасету
+        /// РќР°Р·РЅР°С‡РµРЅРёРµ РїСѓС‚Рё Рє РґР°С‚Р°СЃРµС‚Сѓ
         /// </summary>
         /// <param name="path">
-        /// Путь к датасету
+        /// РџСѓС‚СЊ Рє РґР°С‚Р°СЃРµС‚Сѓ
         /// </param>
         /// <exception cref="PathDontExistException">
-        /// Если не существует пути
+        /// Р•СЃР»Рё РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚ РїСѓС‚Рё
         /// </exception>
         public void SetPath(string path)
         {
@@ -71,17 +89,19 @@ namespace PSASH.Infrastructure.Services.FileBased
             _path = path;
         }
 
+        #region Private Methods
+
         /// <summary>
-        /// Проверка структуры датасета 
+        /// РџСЂРѕРІРµСЂРєР° СЃС‚СЂСѓРєС‚СѓСЂС‹ РґР°С‚Р°СЃРµС‚Р° 
         /// </summary>
         /// <exception cref="DatasetStructureInvalidException">
-        /// Структура датасета нарушена
+        /// РЎС‚СЂСѓРєС‚СѓСЂР° РґР°С‚Р°СЃРµС‚Р° РЅР°СЂСѓС€РµРЅР°
         /// </exception>
         private void ValidateDatasetStructure(string path)
         {
             var directories = Directory.GetDirectories(path);
 
-            // Проверка на наличие ненужных папок в датасете
+            // РџСЂРѕРІРµСЂРєР° РЅР° РЅР°Р»РёС‡РёРµ РЅРµРЅСѓР¶РЅС‹С… РїР°РїРѕРє РІ РґР°С‚Р°СЃРµС‚Рµ
             if (directories
                 .Select(Directory.GetDirectories)
                 .Any(dirs => dirs.Length != 0))
@@ -101,8 +121,17 @@ namespace PSASH.Infrastructure.Services.FileBased
             {
                 throw new DatasetStructureInvalidException(path);
             }
+        }
 
+        private string GetFilePath(TimeSeriesInfo info)
+        {
+            var path = Path.Combine(_path, info.Class);
+            var fileExt = Path.GetExtension(Directory
+                .GetFiles(path)
+                .FirstOrDefault());
 
+            return fileExt is null ?
+                "" : Path.Combine(path, info.id + fileExt);
         }
 
         private SameExt FilesExtensionsTheSame(string directory)
@@ -127,6 +156,11 @@ namespace PSASH.Infrastructure.Services.FileBased
             return new(current_ext, true);
         }
 
-        record SameExt(string Ext, bool IsSame);
+        #endregion
+
+        /// <summary />
+        /// <param name="Ext">Р Р°СЃС€РёСЂРµРЅРёРµ С„Р°Р№Р»РѕРІ РІ РїР°РїРєРµ</param>
+        /// <param name="IsSame">Р Р°СЃС€РёСЂРµРЅРёСЏ РІ РїР°РїРєРµ РѕРґРёРЅР°РєРѕРІС‹Рµ</param>
+        private record SameExt(string Ext, bool IsSame);
     }
 }

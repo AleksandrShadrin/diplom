@@ -1,19 +1,33 @@
 syntax = "proto3";
 package sending;
 
-service SendingService { rpc SendFile(stream BatchedFile) returns (Response); }
+import "google/protobuf/empty.proto";
+
+service DatasetSender {
+  rpc SendDataset(stream DatasetShard) returns (SendResponse);
+  rpc GetLoadedDatasetNames(google.protobuf.Empty) returns (DatasetNames);
+}
 
 enum SendingStatus {
   OK = 0;
   ERROR = 1;
 }
 
-message Response {
+message SendResponse {
   string message = 1;
   SendingStatus status = 2;
 }
 
-message BatchedFile {
-  bytes file_batch = 1;
-  string name = 2;
+message DatasetNames { repeated string names = 1; }
+
+message TimeSeries {
+  string class_name = 1;
+  string id = 2;
+  repeated double values = 3;
+}
+
+message DatasetShard {
+  optional string dataset_name = 1;
+  optional bool update_dataset = 2;
+  TimeSeries time_series = 3;
 }
