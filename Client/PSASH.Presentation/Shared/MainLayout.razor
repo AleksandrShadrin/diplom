@@ -1,8 +1,12 @@
 ﻿@using PSASH.Core.ValueObjects;
+@using PSASH.Infrastructure.Services.FileBased;
 @using PSASH.Presentation.Components;
 @using PSASH.Presentation.Models;
 @inherits LayoutComponentBase
+
 @inject DialogService DialogService
+@inject IFileBasedMonoDatasetService filebasedMonoDatasetService
+@inject NavigationManager navManger
 
 <PageTitle>PSASH.Presentation</PageTitle>
 <RadzenDialog />
@@ -10,17 +14,13 @@
 
 <RadzenLayout>
     <RadzenHeader>
-        <div class="px-4">
-            <RadzenMenu>
-                <RadzenMenuItem Text="Actions" Icon="home">
-                    <RadzenMenuItem @onclick:preventDefault="true" Text="SelectFolder" Icon="folder" Click="SelectFolder"></RadzenMenuItem>
-                    <RadzenButton Click="@SelectFolder">Select</RadzenButton>
-                </RadzenMenuItem>
-            </RadzenMenu>
-        </div>
+        <RadzenStack AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
+            <RadzenSidebarToggle Click="@(() => expandSidebar = !expandSidebar)" />
+            <RadzenLabel Text="Home"></RadzenLabel>
+        </RadzenStack>
     </RadzenHeader>
-    <RadzenSidebar class="h-100">
-        <TimeSeriesList @bind-TimeSeries="timeSeries">
+    <RadzenSidebar class="h-100 text-center" @bind-Expanded="expandSidebar">
+        <TimeSeriesList @bind-TimeSeries="timeSeries" @bind-Selected="selected" @bind-Selected:after="GoToTimeSeriesPage">
         </TimeSeriesList>
     </RadzenSidebar>
     <main>
@@ -31,20 +31,16 @@
 </RadzenLayout>
 
 
-
-
 @code {
-    private List<TimeSeriesDto> timeSeries = Enumerable
-    .Repeat(0, 100)
-    .Select((v, i) => new TimeSeriesInfo(i.ToString(), v.ToString()))
-    .Select(tsi => TimeSeriesName.FromTimeSeriesInfo(tsi))
-    .Select(tsn => new TimeSeriesDto(new List<double>(), tsn))
-    .ToList();
+    private bool expandSidebar = true;
 
+    private TimeSeriesDto selected = default;
 
-    private async Task SelectFolder()
+    private List<TimeSeriesDto> timeSeries = new();
+    private Task GoToTimeSeriesPage()
     {
-        var result = await DialogService
-    .OpenAsync("Folder selector", ds => @<FolderSelector OnConfirm="@(() => ds.Close(true))" />);
+        navManger.NavigateTo($"/timeseries/{selected.Name.ToRouteString()}");
+
+        return Task.CompletedTask;
     }
 }

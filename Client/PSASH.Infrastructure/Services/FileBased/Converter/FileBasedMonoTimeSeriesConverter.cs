@@ -1,17 +1,8 @@
-﻿using Microsoft.VisualBasic.FileIO;
+﻿using NAudio.Wave;
 using PSASH.Core.Entities;
 using PSASH.Core.ValueObjects;
 using PSASH.Infrastructure.Exceptions;
-
 using System.Data;
-using System.Globalization;
-using System.Text.RegularExpressions;
-using NAudio;
-using System;
-using NAudio.Utils;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 
 
 namespace PSASH.Infrastructure.Services.FileBased.Converter
@@ -50,7 +41,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
         private MonoTimeSeries WAVProcessing(string input)
         {
             MonoTimeSeries mono;
-            using (NAudio.Wave.WaveFileReader wave = new NAudio.Wave.WaveFileReader(input))
+            using (WaveFileReader wave = new WaveFileReader(input))
             {
                 //var mixer = new MixingSampleProvider()
                 //WaveFileWriter.CreateWaveFile()
@@ -61,13 +52,13 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
                 {
                     valuesWAV.Add(BitConverter.ToInt16(data, i) / (double)(wave.WaveFormat.SampleRate * 2));
                 }
-                
+
                 TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
                 mono = new MonoTimeSeries(valuesWAV, info);
             }
             return mono;
         }
-        
+
         bool FirstLineIsHeader(string line)
         {
             double num;
@@ -95,9 +86,13 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
         }
         private MonoTimeSeries CSVProcessig(string input)
         {
-            
+
             MonoTimeSeries mono;
+            TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
             var lines = File.ReadLines(input);
+
+            if (lines.Any() is false)
+                return new(Enumerable.Empty<double>(), info);
 
             if (FirstLineIsHeader(lines.First()))
                 lines = lines
@@ -107,9 +102,8 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
                .Select(TryParseToDouble)
                .ToList();
 
-            TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
-            mono = new MonoTimeSeries(values, info);
 
+            mono = new MonoTimeSeries(values, info);
 
             return mono;
         }

@@ -14,6 +14,12 @@ namespace PSASH.Presentation.Models
         public static TimeSeriesName FromTimeSeriesInfo(TimeSeriesInfo timeSeriesInfo)
             => new($"{timeSeriesInfo.Class}:{timeSeriesInfo.id}");
 
+        public static TimeSeriesName FromRouteString(string str)
+            => new(str.Replace(",", "."));
+
+        public string ToRouteString()
+            => new(Value.Replace(".", "."));
+
         public TimeSeriesInfo ToTimeSeriesInfo()
         {
             var parts = Value.Split(':');

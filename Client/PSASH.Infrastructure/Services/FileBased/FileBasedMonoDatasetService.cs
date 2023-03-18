@@ -87,6 +87,7 @@ namespace PSASH.Infrastructure.Services.FileBased
             }
 
             _path = path;
+            ValidateDatasetStructure(_path);
         }
 
         #region Private Methods

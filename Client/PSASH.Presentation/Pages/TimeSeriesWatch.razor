@@ -1,0 +1,19 @@
+﻿@page "/timeseries/{tsName}"
+@using PSASH.Core.ValueObjects;
+@using PSASH.Presentation.Models;
+
+<h3>@tsName</h3>
+
+@code {
+    [Parameter]
+    public string TSName
+    {
+        get => tsName.ToString();
+        set
+        {
+            tsName = TimeSeriesName.FromRouteString(value);
+        }
+    }
+
+    private TimeSeriesName tsName = default;
+}
