@@ -1,4 +1,6 @@
-﻿@using PSASH.Presentation.Components;
+﻿@using PSASH.Core.ValueObjects;
+@using PSASH.Presentation.Components;
+@using PSASH.Presentation.Models;
 @inherits LayoutComponentBase
 @inject DialogService DialogService
 
@@ -6,7 +8,7 @@
 <RadzenDialog />
 <RadzenNotification />
 
-<div class="page">
+<RadzenLayout>
     <RadzenHeader>
         <div class="px-4">
             <RadzenMenu>
@@ -17,17 +19,32 @@
             </RadzenMenu>
         </div>
     </RadzenHeader>
+    <RadzenSidebar class="h-100">
+        <TimeSeriesList @bind-TimeSeries="timeSeries">
+        </TimeSeriesList>
+    </RadzenSidebar>
     <main>
         <article class="content px-4">
             @Body
         </article>
     </main>
-</div>
+</RadzenLayout>
+
+
+
 
 @code {
-    async Task SelectFolder()
+    private List<TimeSeriesDto> timeSeries = Enumerable
+    .Repeat(0, 100)
+    .Select((v, i) => new TimeSeriesInfo(i.ToString(), v.ToString()))
+    .Select(tsi => TimeSeriesName.FromTimeSeriesInfo(tsi))
+    .Select(tsn => new TimeSeriesDto(new List<double>(), tsn))
+    .ToList();
+
+
+    private async Task SelectFolder()
     {
         var result = await DialogService
-            .OpenAsync("Folder selector", ds => @<FolderSelector OnConfirm="@(() => ds.Close(true))" />);
+    .OpenAsync("Folder selector", ds => @<FolderSelector OnConfirm="@(() => ds.Close(true))" />);
     }
 }

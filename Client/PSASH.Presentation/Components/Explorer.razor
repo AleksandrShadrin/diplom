@@ -1,6 +1,5 @@
 ﻿@using System.IO
 
-
 <RadzenCard>
     <RadzenTree Data=@entries Expand=@LoadFiles Style="width: 100%; height: 300px" Change="@OnSelect">
         <RadzenTreeLevel Text=@GetTextForNode Template=@FileOrFolderTemplate />
@@ -8,9 +7,6 @@
 </RadzenCard>
 
 @code {
-    [Parameter]
-    public bool ShowFolders { get; set; } = true;
-
     [Parameter]
     public bool ShowFiles { get; set; } = true;
 
@@ -62,16 +58,13 @@
             .Where(di => (di.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0)
             .Select(di => di.FullName);
 
-        var files = Directory.GetFiles(directory);
-
-        if (ShowFolders && !ShowFiles)
-            return directories;
-        else if (ShowFiles && ShowFiles)
+        if (ShowFiles)
+        {
+            var files = Directory.GetFiles(directory);
             return directories.Concat(files).Order();
-        else if (ShowFiles && !ShowFolders)
-            return files;
-        else
-            return Enumerable.Empty<string>();
+        }
+
+        return directories;
     }
 
     string GetTextForNode(object data)
