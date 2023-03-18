@@ -65,22 +65,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             }
             return mono;
         }
-        //private List<double> method()
-        //{
-        //    var path = ".";
-
-        //    var lines = File.ReadLines(path);
-
-        //    if (FirstLineIsHeader(lines.First()))
-        //        lines = lines
-        //            .Skip(1);
-
-        //    return lines
-        //            .Skip(1)
-        //            .Select(TryParseToDouble)
-        //            .ToList();
-        //}
-
+        
         bool FirstLineIsHeader(string line)
         {
             double num;
@@ -126,15 +111,6 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
 
             return mono;
         }
-
-        //private double ParseToDouble(string str, string input)
-        //{
-        //    double number;
-        //    if (double.TryParse(str, CultureInfo.InvariantCulture, out number))
-        //        return number;
-        //    throw new CantConvertToMonoFileException(input);
-        //}
-        
 
         private enum AvailableExtensions
         {
