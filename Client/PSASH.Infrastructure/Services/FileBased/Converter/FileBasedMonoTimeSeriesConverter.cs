@@ -88,7 +88,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             }
             else
             {
-                throw new CantConvertToMonoFileException();
+                throw new CantConvertToMonoFileException("");
             }
         }
         private MonoTimeSeries CSVProcessig(string input)
