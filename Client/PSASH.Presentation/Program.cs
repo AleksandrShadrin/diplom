@@ -1,4 +1,5 @@
 using PSASH.Infrastructure;
+using PSASH.Presentation.Services;
 using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<TooltipService>();
 builder.Services.AddScoped<ContextMenuService>();
+builder.Services.AddScoped<ITimeSeriesInfoService, TimeSeriesInfoService>();
 
 var app = builder.Build();
 
