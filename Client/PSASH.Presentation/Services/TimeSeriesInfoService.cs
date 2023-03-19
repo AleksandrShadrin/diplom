@@ -29,25 +29,12 @@ namespace PSASH.Presentation.Services
             {
                 sumStd += Math.Pow((value - mean), 2);
             }
-            return Math.Sqrt(sumStd / values.Count);
+            return Math.Sqrt(sumStd / (values.Count-1));
         }
 
         public double GetCV(TimeSeriesDto timeSeries)//коэффициент вариации
         {
-            var values = timeSeries.Values;
-            double sum = 0;
-            foreach (var value in values)
-            {
-                sum += value;
-            }
-            double mean = sum / values.Count;
-            double sum2 = 0;
-            foreach (var value in values)
-            {
-                sum2 += Math.Pow((value - mean), 2) / (values.Count-1);
-            }
-            double std = Math.Sqrt(sum2);
-            return std*100/mean;
+            return GetStd(timeSeries)*100/GetMean(timeSeries);
         }
 
         public double GetMax(TimeSeriesDto timeSeries)

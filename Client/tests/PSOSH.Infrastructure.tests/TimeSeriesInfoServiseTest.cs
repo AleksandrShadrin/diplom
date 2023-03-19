@@ -37,11 +37,10 @@ namespace PSOSH.Infrastructure.tests
             //act
             TimeSeriesDto expected = new TimeSeriesDto(arr, TimeSeriesName.FromTimeSeriesInfo(new TimeSeriesInfo("", "")));
             TimeSeriesInfoService time = new TimeSeriesInfoService();
-            //MonoTimeSeries k = c.Convert(path2);
 
 
             //assert
-            Assert.Equal(1.77281, time.GetStd(expected), 5);
+            Assert.Equal(1.91485, time.GetStd(expected), 5);
 
         }
 
@@ -69,7 +68,7 @@ namespace PSOSH.Infrastructure.tests
             //act
             TimeSeriesDto expected = new TimeSeriesDto(arr, TimeSeriesName.FromTimeSeriesInfo(new TimeSeriesInfo("", "")));
             TimeSeriesInfoService time = new TimeSeriesInfoService();
-            //MonoTimeSeries k = c.Convert(path2);
+
 
 
             //assert
@@ -85,7 +84,6 @@ namespace PSOSH.Infrastructure.tests
             //act
             TimeSeriesDto expected = new TimeSeriesDto(arr, TimeSeriesName.FromTimeSeriesInfo(new TimeSeriesInfo("", "")));
             TimeSeriesInfoService time = new TimeSeriesInfoService();
-            //MonoTimeSeries k = c.Convert(path2);
 
 
             //assert
@@ -101,7 +99,6 @@ namespace PSOSH.Infrastructure.tests
             //act
             TimeSeriesDto expected = new TimeSeriesDto(arr, TimeSeriesName.FromTimeSeriesInfo(new TimeSeriesInfo("", "")));
             TimeSeriesInfoService time = new TimeSeriesInfoService();
-            //MonoTimeSeries k = c.Convert(path2);
 
 
             //assert
