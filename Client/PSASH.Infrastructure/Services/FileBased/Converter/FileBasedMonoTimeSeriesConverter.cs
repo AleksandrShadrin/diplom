@@ -38,6 +38,9 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
 
         }
 
+        private TimeSeriesInfo ExtractTimeSeriesInfoFromPath(string path)
+            => new TimeSeriesInfo(Path.GetFileNameWithoutExtension(Path.GetDirectoryName(path)), Path.GetFileNameWithoutExtension(path));
+
         private MonoTimeSeries WAVProcessing(string input)
         {
             MonoTimeSeries mono;
@@ -53,13 +56,12 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
                     valuesWAV.Add(BitConverter.ToInt16(data, i) / (double)(wave.WaveFormat.SampleRate * 2));
                 }
 
-                TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
-                mono = new MonoTimeSeries(valuesWAV, info);
+                mono = new MonoTimeSeries(valuesWAV, ExtractTimeSeriesInfoFromPath(input));
             }
             return mono;
         }
 
-        bool FirstLineIsHeader(string line)
+        private bool FirstLineIsHeader(string line)
         {
             double num;
             if (double.TryParse(line, out num))
@@ -88,11 +90,10 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
         {
 
             MonoTimeSeries mono;
-            TimeSeriesInfo info = new TimeSeriesInfo(Path.GetFileName(Path.GetDirectoryName(input)), Path.GetFileName(input));
             var lines = File.ReadLines(input);
 
             if (lines.Any() is false)
-                return new(Enumerable.Empty<double>(), info);
+                return new(Enumerable.Empty<double>(), ExtractTimeSeriesInfoFromPath(input));
 
             if (FirstLineIsHeader(lines.First()))
                 lines = lines
@@ -103,7 +104,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
                .ToList();
 
 
-            mono = new MonoTimeSeries(values, info);
+            mono = new MonoTimeSeries(values, ExtractTimeSeriesInfoFromPath(input));
 
             return mono;
         }
@@ -111,6 +112,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
         private enum AvailableExtensions
         {
             CSV,
+            WAV,
             NOT_AVAILABLE
         }
 

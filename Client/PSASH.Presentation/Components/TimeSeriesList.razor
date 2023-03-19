@@ -69,6 +69,15 @@
     [Parameter]
     public int TimeSeriesPerClass { get; set; } = 20;
 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await UpdateTimeSeries();
+        }
+        catch (Exception ex) {}
+    }
+
     private Dictionary<string, List<TimeSeriesDto>> collectedByClasses = new();
     private Dictionary<string, int> timeseriesClassMultiplier = new();
 
@@ -87,9 +96,8 @@
         var dataset = filebasedMonoDatasetService.LoadDataset();
         var timeSeries = dataset
             .GetValues()
-            .Select(filebasedMonoDatasetService.LoadTimeSeries)
-            .Select(ts => new TimeSeriesDto(ts.GetValues().ToList(),
-                TimeSeriesName.FromTimeSeriesInfo(ts.TimeSeriesInfo)))
+            .Select(tsi => new TimeSeriesDto(Enumerable.Empty<double>().ToList(),
+                TimeSeriesName.FromTimeSeriesInfo(tsi)))
                 .ToList();
         await TimeSeriesChanged.InvokeAsync(timeSeries);
     }

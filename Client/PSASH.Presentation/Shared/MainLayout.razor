@@ -4,6 +4,7 @@
 @using PSASH.Presentation.Models;
 @inherits LayoutComponentBase
 
+@inject NotificationService NotificationService
 @inject DialogService DialogService
 @inject IFileBasedMonoDatasetService filebasedMonoDatasetService
 @inject NavigationManager navManger
@@ -16,7 +17,7 @@
     <RadzenHeader>
         <RadzenStack AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
             <RadzenSidebarToggle Click="@(() => expandSidebar = !expandSidebar)" />
-            <RadzenLabel Text="Home"></RadzenLabel>
+            <RadzenLink Text="Home" Icon="home" Path="/" @onclick="() => selected = default" />
         </RadzenStack>
     </RadzenHeader>
     <RadzenSidebar class="h-100 text-center" @bind-Expanded="expandSidebar">
@@ -37,6 +38,7 @@
     private TimeSeriesDto selected = default;
 
     private List<TimeSeriesDto> timeSeries = new();
+
     private Task GoToTimeSeriesPage()
     {
         navManger.NavigateTo($"/timeseries/{selected.Name.ToRouteString()}");
