@@ -1,0 +1,74 @@
+﻿@page "/timeseries/{tsClass}/{tsId}"
+
+@using PSASH.Core.ValueObjects;
+@using PSASH.Infrastructure.Exceptions;
+@using PSASH.Presentation.Exceptions;
+@using PSASH.Presentation.Models;
+@inject IFileBasedMonoDatasetService filebasedMonoDatasetService
+@inject NotificationService NotificationService
+
+<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
+    <RadzenCard class="w-100 bg-info">
+        <RadzenText Text="TimeSeries research" TextStyle="TextStyle.DisplayH4" class="text-white" />
+    </RadzenCard>
+</RadzenStack>
+
+@if (timeSeriesDto is not null)
+{
+    <RadzenText Text="@tsName.ToString()" />
+}
+else
+{
+    <RadzenStack class="mt-4" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
+        <RadzenLink  Path="" >
+            <RadzenText Text="Go Home" TextStyle="TextStyle.DisplayH4" class="text-warning"/>
+        </RadzenLink>
+    </RadzenStack>
+}
+
+
+
+@code {
+    [Parameter]
+    public string TsClass { get; set; } = String.Empty;
+    [Parameter]
+    public string TsId { get; set; } = String.Empty;
+
+    private TimeSeriesName tsName = default;
+
+    private TimeSeriesDto timeSeriesDto = default;
+
+    protected override void OnParametersSet()
+    {
+        try
+        {
+            tsName = TimeSeriesName.FromRouteString($"{TsClass}/{TsId}");
+
+            timeSeriesDto = filebasedMonoDatasetService
+                .LoadTimeSeries(tsName.ToTimeSeriesInfo());
+        }
+        catch (InfrastructureException ex)
+        {
+            var notification = new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Something went wrong",
+                    Detail = ex.Message,
+                    Duration = 4000
+                };
+            NotificationService.Notify(notification);
+        }
+        catch (PresentationException ex)
+        {
+            var notification = new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Info,
+                    Summary = "Something went wrong",
+                    Detail = ex.Message,
+                    Duration = 4000
+                };
+
+            NotificationService.Notify(notification);
+        }
+    }
+}

@@ -23,7 +23,7 @@ namespace PSOSH.Infrastructure.tests
             {
                 arr2[i] = (double)arr[i] / (sampleRate*2);
             }
-            CreateElemantInPathWav(path2, arr, sampleRate);
+            CreateElementInPathWav(path2, arr, sampleRate);
 
 
             Console.WriteLine("Готово");
@@ -41,7 +41,7 @@ namespace PSOSH.Infrastructure.tests
         }
 
 
-        public void CreateElemantInPathWav(string path, byte[] arr, int sampleRate)
+        public void CreateElementInPathWav(string path, byte[] arr, int sampleRate)
         {
             if (!File.Exists(path))
             {
@@ -102,7 +102,6 @@ namespace PSOSH.Infrastructure.tests
             {
                 FileBasedMonoTimeSeriesConverter c = new FileBasedMonoTimeSeriesConverter();
                 MonoTimeSeries k = c.Convert(path);
-
             };
 
             //assert

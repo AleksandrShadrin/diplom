@@ -1,18 +1,28 @@
-﻿@using PSASH.Presentation.Models;
+﻿@using PSASH.Infrastructure.Services.FileBased;
+@using PSASH.Presentation.Models;
+@inject DialogService DialogService
+@inject IFileBasedMonoDatasetService filebasedMonoDatasetService
 
+<RadzenButton ButtonStyle="ButtonStyle.Primary" class="mb-4 mt-2" Text="Choose folder of dataset" Click="InvokeFolderSelectionDialog"></RadzenButton>
 <RadzenTree class="w-100">
     @foreach (var timeSeriesClass in GetClasses())
     {
-        <RadzenTreeItem Text="@timeSeriesClass" class="w-auto ms-4">
+        <RadzenTreeItem Text="@timeSeriesClass" class="w-75 mx-auto">
             <ChildContent>
-                @foreach (var ts in TimeSeries
-               .Where(ts => ts.Name.ToTimeSeriesInfo().Class == timeSeriesClass))
+                @foreach (var ts in collectedByClasses[timeSeriesClass]
+                    .Take(TimeSeriesPerClass * timeseriesClassMultiplier[timeSeriesClass]))
                 {
-                    <RadzenCard Style="cursor:pointer;" class="w-100 my-3">
+                    <RadzenCard Style="cursor:pointer;" class=@("w-100 my-3 mx-0"+((ts == Selected) ? " bg-primary" : "")) @onclick="(async (_)=> await SelectedChanged.InvokeAsync(ts))">
                         <RadzenText class="text-center text">
                             @ts.Name
-                        </RadzenText> 
+                        </RadzenText>
                     </RadzenCard>
+                }
+
+                @if (collectedByClasses[timeSeriesClass]
+                    .Count() > TimeSeriesPerClass * timeseriesClassMultiplier[timeSeriesClass])
+                {
+                    <RadzenButton Click="()=>timeseriesClassMultiplier[timeSeriesClass]+=1" ButtonStyle="ButtonStyle.Info" Text="More"></RadzenButton>
                 }
             </ChildContent>
         </RadzenTreeItem>
@@ -22,13 +32,75 @@
 
 @code {
     [Parameter]
-    public IEnumerable<TimeSeriesDto> TimeSeries { get; set; }
+    public IEnumerable<TimeSeriesDto> TimeSeries
+    {
+        get => collectedByClasses
+        .Values
+        .SelectMany(v => v);
+        set
+        {
+            Selected = default;
+            collectedByClasses = new();
+            timeseriesClassMultiplier = new();
+
+            foreach (var ts in value)
+            {
+                var tsClass = ts.Name.ToTimeSeriesInfo().Class;
+                if (collectedByClasses.TryAdd(tsClass, new() { ts }))
+                    continue;
+
+                if (timeseriesClassMultiplier.TryAdd(tsClass, 1))
+                    continue;
+
+                collectedByClasses[tsClass].Add(ts);
+            }
+        }
+    }
 
     [Parameter]
     public EventCallback<List<TimeSeriesDto>> TimeSeriesChanged { get; set; }
 
     [Parameter]
     public TimeSeriesDto Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<TimeSeriesDto> SelectedChanged { get; set; }
+
+    [Parameter]
+    public int TimeSeriesPerClass { get; set; } = 20;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await UpdateTimeSeries();
+        }
+        catch (Exception ex) {}
+    }
+
+    private Dictionary<string, List<TimeSeriesDto>> collectedByClasses = new();
+    private Dictionary<string, int> timeseriesClassMultiplier = new();
+
+    private async Task InvokeFolderSelectionDialog()
+    {
+        await DialogService
+            .OpenAsync("Folder Selection", ds =>
+            @<FolderSelector OnConfirm="(async ()=> {
+                            ds.Close();
+                            await UpdateTimeSeries();
+                        })"></FolderSelector>);
+    }
+
+    private async Task UpdateTimeSeries()
+    {
+        var dataset = filebasedMonoDatasetService.LoadDataset();
+        var timeSeries = dataset
+            .GetValues()
+            .Select(tsi => new TimeSeriesDto(Enumerable.Empty<double>().ToList(),
+                TimeSeriesName.FromTimeSeriesInfo(tsi)))
+                .ToList();
+        await TimeSeriesChanged.InvokeAsync(timeSeries);
+    }
 
     private List<string> GetClasses()
          => TimeSeries
