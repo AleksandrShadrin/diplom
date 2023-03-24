@@ -6,10 +6,6 @@
 
 <RadzenButton ButtonStyle="ButtonStyle.Primary" class="mb-4 mt-2" Text="Choose folder of dataset" Click="InvokeFolderSelectionDialog"></RadzenButton>
 <RadzenTree class="w-100">
-    @if(collectedByClasses.Keys.Count > 0)
-    {
-        
-    }
     @foreach (var timeSeriesClass in collectedByClasses.Keys)
     {
         <RadzenTreeItem Text="@timeSeriesClass" class="w-75 mx-auto">
