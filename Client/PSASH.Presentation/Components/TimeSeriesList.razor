@@ -1,28 +1,32 @@
 ﻿@using PSASH.Infrastructure.Services.FileBased;
 @using PSASH.Presentation.Models;
+@using System.Text;
 @inject DialogService DialogService
 @inject IFileBasedMonoDatasetService filebasedMonoDatasetService
 
 <RadzenButton ButtonStyle="ButtonStyle.Primary" class="mb-4 mt-2" Text="Choose folder of dataset" Click="InvokeFolderSelectionDialog"></RadzenButton>
 <RadzenTree class="w-100">
-    @foreach (var timeSeriesClass in GetClasses())
+    @foreach (var timeSeriesClass in collectedByClasses.Keys)
     {
         <RadzenTreeItem Text="@timeSeriesClass" class="w-75 mx-auto">
             <ChildContent>
-                @foreach (var ts in collectedByClasses[timeSeriesClass]
-                    .Take(TimeSeriesPerClass * timeseriesClassMultiplier[timeSeriesClass]))
+                @if (collectedByClasses.ContainsKey(timeSeriesClass))
                 {
-                    <RadzenCard Style="cursor:pointer;" class=@("w-100 my-3 mx-0"+((ts == Selected) ? " bg-primary" : "")) @onclick="(async (_)=> await SelectedChanged.InvokeAsync(ts))">
-                        <RadzenText class="text-center text">
-                            @ts.Name
-                        </RadzenText>
-                    </RadzenCard>
-                }
+                    @foreach (var ts in collectedByClasses[timeSeriesClass]
+                   .Take(TimeSeriesPerClass * timeseriesClassMultiplier[timeSeriesClass]))
+                    {
+                        <RadzenCard Style="cursor:pointer;" class=@("w-100 my-3 mx-0"+((ts == Selected) ? " bg-primary" : "")) @onclick="(async (_)=> await SelectedChanged.InvokeAsync(ts))">
+                            <RadzenText class="text-center text">
+                                @ts.Name
+                            </RadzenText>
+                        </RadzenCard>
+                    }
 
-                @if (collectedByClasses[timeSeriesClass]
-                    .Count() > TimeSeriesPerClass * timeseriesClassMultiplier[timeSeriesClass])
-                {
-                    <RadzenButton Click="()=>timeseriesClassMultiplier[timeSeriesClass]+=1" ButtonStyle="ButtonStyle.Info" Text="More"></RadzenButton>
+                    @if (collectedByClasses[timeSeriesClass]
+                   .Count() > TimeSeriesPerClass * timeseriesClassMultiplier[timeSeriesClass])
+                    {
+                        <RadzenButton Click="()=>timeseriesClassMultiplier[timeSeriesClass]+=1" ButtonStyle="ButtonStyle.Info" Text="More"></RadzenButton>
+                    }
                 }
             </ChildContent>
         </RadzenTreeItem>
@@ -35,21 +39,23 @@
     public IEnumerable<TimeSeriesDto> TimeSeries
     {
         get => collectedByClasses
-        .Values
-        .SelectMany(v => v);
+            .Values
+            .SelectMany(v => v);
         set
         {
             Selected = default;
             collectedByClasses = new();
             timeseriesClassMultiplier = new();
+            StateHasChanged();
 
             foreach (var ts in value)
             {
                 var tsClass = ts.Name.ToTimeSeriesInfo().Class;
-                if (collectedByClasses.TryAdd(tsClass, new() { ts }))
-                    continue;
+                tsClass = ConvertToUtf8(tsClass);
 
-                if (timeseriesClassMultiplier.TryAdd(tsClass, 1))
+                timeseriesClassMultiplier.TryAdd(tsClass, 1);
+
+                if (collectedByClasses.TryAdd(tsClass, new() { ts }))
                     continue;
 
                 collectedByClasses[tsClass].Add(ts);
@@ -88,7 +94,8 @@
             @<FolderSelector OnConfirm="(async ()=> {
                             ds.Close();
                             await UpdateTimeSeries();
-                        })"></FolderSelector>);
+                        })"></FolderSelector>
+    );
     }
 
     private async Task UpdateTimeSeries()
@@ -102,9 +109,16 @@
         await TimeSeriesChanged.InvokeAsync(timeSeries);
     }
 
+    private string ConvertToUtf8(string s)
+    {
+        var newString = Encoding.UTF8.GetString(Encoding.Default.GetBytes(s));
+        return newString;
+    }
+
     private List<string> GetClasses()
          => TimeSeries
                 .Select(ts => ts.Name.ToTimeSeriesInfo().Class)
                 .Distinct()
+                .Select(ConvertToUtf8)
                 .ToList();
 }

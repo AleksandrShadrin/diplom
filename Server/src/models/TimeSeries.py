@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import List
 import proto_generated.SendingService_pb2 as proto_generated
 
@@ -14,3 +15,21 @@ class TimeSeries:
         return proto_generated.TimeSeries(class_name=self.timeseries_class,
                                           id=self.id,
                                           values=self.values)
+
+
+class FillParameters(Enum):
+    """How fill TimeSeries"""
+    FILL_ZEROES = 0
+
+
+class CutParameters(Enum):
+    CUT_LEFT = 0
+    CUT_RIGHT = 1
+    CUT_BOTH = 2
+
+
+@dataclass
+class TimeSeriesLearningParameters:
+    """TimeSeries parameters to learn"""
+    cut_parameters: CutParameters
+    fill_parameters: FillParameters

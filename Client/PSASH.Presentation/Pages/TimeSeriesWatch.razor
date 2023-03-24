@@ -15,13 +15,19 @@
 
 @if (timeSeriesDto is not null)
 {
-    <RadzenText Text="@tsName.ToString()" />
+    <RadzenRow Gap="1rem" class="mt-4" Style="min-height:400px;">
+        <RadzenColumn class="bg-primary" Size="8">
+        </RadzenColumn>
+        <RadzenColumn class="bg-secondary p-2" Size="4">
+            <PSASH.Presentation.Components.TimeSeriesDtoStats TimeSeriesDto="timeSeriesDto" />
+        </RadzenColumn>
+    </RadzenRow>
 }
 else
 {
     <RadzenStack class="mt-4" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
-        <RadzenLink  Path="" >
-            <RadzenText Text="Go Home" TextStyle="TextStyle.DisplayH4" class="text-warning"/>
+        <RadzenLink Path="">
+            <RadzenText Text="Go Home" TextStyle="TextStyle.DisplayH4" class="text-warning" />
         </RadzenLink>
     </RadzenStack>
 }
@@ -38,7 +44,12 @@ else
 
     private TimeSeriesDto timeSeriesDto = default;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
+    {
+        await Update();
+    }
+
+    public Task Update()
     {
         try
         {
@@ -46,6 +57,9 @@ else
 
             timeSeriesDto = filebasedMonoDatasetService
                 .LoadTimeSeries(tsName.ToTimeSeriesInfo());
+
+            if (timeSeriesDto.Values.Count == 0)
+                timeSeriesDto = timeSeriesDto with { Values = new() { 0 } };
         }
         catch (InfrastructureException ex)
         {
@@ -70,5 +84,7 @@ else
 
             NotificationService.Notify(notification);
         }
+
+        return Task.CompletedTask;
     }
 }
