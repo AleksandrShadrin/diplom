@@ -1,10 +1,15 @@
 from models.TimeSeries import TimeSeries, TimeSeriesLearningParameters
 from models.predictors import BasePredictor
 from models.transformers import BaseTransformer
+from models.Dataset import Dataset
 
 
 class BaseModel:
     """BaseModel of intellectual model for timeseries analysis"""
+
+    def train(self, dataset: Dataset):
+        """Train intellectual model using dataset"""
+        raise NotImplementedError("BaseModel don't imlement this method")
 
     def load(self, **kwargs):
         """Load model parameters"""
