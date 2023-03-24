@@ -27,6 +27,20 @@ message Model {
   string dataset_name = 1;
   string model_name = 2;
 }
+message ModelParameters {
+  int32 time_series_length = 1;
+  CutParameters cut_parameters = 2;
+  FillParameters fill_parameters = 3;
+}
+
+enum FillParameters { FILL_ZEROES = 0; }
+
+enum CutParameters {
+  CUT_LEFT = 0;
+  CUT_RIGHT = 1;
+  CUT_BOTH = 2;
+}
+
 enum TrainStatus {
   SUCCESS = 0;
   ERROR = 1;

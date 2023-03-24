@@ -1,5 +1,28 @@
-﻿<h3>TimeSeriesDtoStats</h3>
+﻿@using PSASH.Presentation.Models;
+@using PSASH.Presentation.Services;
+
+@inject ITimeSeriesInfoService infoService
+
+<RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start">
+    <RadzenText Text=@($"Class: {TimeSeriesDto.Name.ToTimeSeriesInfo().Class}") TextStyle="TextStyle.H5" class="text-white" />
+    <RadzenText Text=@($"Id: {TimeSeriesDto.Name.ToTimeSeriesInfo().id}") TextStyle="TextStyle.H5" class="text-white" />
+    @foreach (var stat in GetStats())
+    {
+        <RadzenText Text=@(stat) TextStyle="TextStyle.H5" class="text-white" />
+    }
+</RadzenStack>
 
 @code {
+    [Parameter]
+    public TimeSeriesDto TimeSeriesDto { get; set; }
+
+    public IEnumerable<string> GetStats()
+    {
+        yield return $"Mean: {infoService.GetMean(TimeSeriesDto):f5}";
+        yield return $"Std: {infoService.GetStd(TimeSeriesDto):f5}";
+        yield return $"CV: {infoService.GetCV(TimeSeriesDto):f5}";
+        yield return $"Min: {infoService.GetMin(TimeSeriesDto):f5}";
+        yield return $"Max: {infoService.GetMax(TimeSeriesDto):f5}";
+    }
 
 }
