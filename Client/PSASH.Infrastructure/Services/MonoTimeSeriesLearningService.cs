@@ -29,14 +29,12 @@ namespace PSASH.Infrastructure.Services
         public async Task<TrainedModel> TrainModel(UntrainedModel model, TrainOptions options)
         {
             var dataset = _datasetService.LoadDataset();
-            var timeSeries = dataset
-                .GetValues()
-                .Select(tsi => _datasetService.LoadTimeSeries(tsi));
+            _modelTrainer.SetTrainOptions(options);
 
             var result = await _modelTrainer
                 .TrainModel(model,
                     dataset.Name,
-                    timeSeries.ToList());
+                    dataset);
 
             return result;
         }

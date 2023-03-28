@@ -6,33 +6,38 @@
 @using PSASH.Presentation.Models;
 @inject IFileBasedMonoDatasetService filebasedMonoDatasetService
 @inject NotificationService NotificationService
+@inject NavigationManager NavManager
 
 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
-    <RadzenCard class="w-100 bg-info">
-        <RadzenText Text="TimeSeries research" TextStyle="TextStyle.DisplayH4" class="text-white" />
+    <RadzenCard class="w-100 bg-primary bg-opacity-75">
+        <RadzenText Text="Анализ временного ряда" TextStyle="TextStyle.DisplayH4" class="text-white" />
     </RadzenCard>
 </RadzenStack>
 
 @if (timeSeriesDto is not null)
 {
-    <RadzenRow Gap="1rem" class="mt-4" Style="min-height:400px;">
-        <RadzenColumn class="bg-primary" Size="8">
+    <RadzenRow Gap="1rem" class="mt-4 container-fluid" Style="min-height:400px;" >
+        <RadzenColumn class="card bg-white p-4" Size="8">
+            <PSASH.Presentation.Components.TimeSeriesPlot @bind-TimeSeriesDto="timeSeriesDto" />
         </RadzenColumn>
-        <RadzenColumn class="bg-secondary p-2" Size="4">
+        <RadzenColumn class="card bg-light p-4" Size="4">
             <PSASH.Presentation.Components.TimeSeriesDtoStats TimeSeriesDto="timeSeriesDto" />
         </RadzenColumn>
     </RadzenRow>
 }
 else
 {
-    <RadzenStack class="mt-4" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
-        <RadzenLink Path="">
-            <RadzenText Text="Go Home" TextStyle="TextStyle.DisplayH4" class="text-warning" />
-        </RadzenLink>
-    </RadzenStack>
+    <RadzenRow Gap="1rem" class="mt-4" Style="min-height:400px;">
+        <RadzenColumn class="card bg-white p-4" Size="8">
+            <div class="spinner-border" role="status">
+            </div>
+        </RadzenColumn>
+        <RadzenColumn class="card bg-light p-4 text-dark" Size="4">
+            <div class="spinner-border" role="status">
+            </div>
+        </RadzenColumn>
+    </RadzenRow>
 }
-
-
 
 @code {
     [Parameter]
@@ -44,15 +49,33 @@ else
 
     private TimeSeriesDto timeSeriesDto = default;
 
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Update();
+
+        if (timeSeriesDto is null)
+            NavManager.NavigateTo("");
+
+        await base.OnInitializedAsync();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         await Update();
+
+        if (timeSeriesDto is null)
+            NavManager.NavigateTo("");
     }
 
-    public Task Update()
+    public async Task Update()
     {
         try
         {
+            timeSeriesDto = default;
+
+            await Task.Delay(50);
+
             tsName = TimeSeriesName.FromRouteString($"{TsClass}/{TsId}");
 
             timeSeriesDto = filebasedMonoDatasetService
@@ -84,7 +107,5 @@ else
 
             NotificationService.Notify(notification);
         }
-
-        return Task.CompletedTask;
     }
 }

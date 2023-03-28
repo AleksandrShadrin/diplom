@@ -1,0 +1,44 @@
+﻿@using Grpc.Client;
+
+@implements IDisposable
+
+@inject ServerStatusService StatusService
+@inject AppStateService AppState
+@inject ServerStateCheckerService ServerStateChecker
+
+@if (status is true)
+{
+    <RadzenBadge @attributes="@InputAttributes" BadgeStyle="BadgeStyle.Success" Text="online" />
+}
+else
+{
+    <RadzenBadge @attributes="@InputAttributes" BadgeStyle="BadgeStyle.Warning" Text="offline" />
+}
+
+@code {
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; }
+
+    private bool isActive = true;
+
+    private bool status = false;
+
+    private CancellationTokenSource cancelSource = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ServerStateChecker.StartAsync(500, ChangeState, cancelSource.Token);
+    }
+
+    private void ChangeState(bool state)
+    {
+        status = state;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        cancelSource.Cancel();
+        isActive = false;
+    }
+}

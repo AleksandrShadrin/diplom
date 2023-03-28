@@ -4,11 +4,11 @@
 @inject ITimeSeriesInfoService infoService
 
 <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start">
-    <RadzenText Text=@($"Class: {TimeSeriesDto.Name.ToTimeSeriesInfo().Class}") TextStyle="TextStyle.H5" class="text-white" />
-    <RadzenText Text=@($"Id: {TimeSeriesDto.Name.ToTimeSeriesInfo().id}") TextStyle="TextStyle.H5" class="text-white" />
+    <RadzenText Text=@($"Class: {TimeSeriesDto.Name.ToTimeSeriesInfo().Class}") TextStyle="TextStyle.H5" />
+    <RadzenText Text=@($"Id: {TimeSeriesDto.Name.ToTimeSeriesInfo().id}") TextStyle="TextStyle.H5" />
     @foreach (var stat in GetStats())
     {
-        <RadzenText Text=@(stat) TextStyle="TextStyle.H5" class="text-white" />
+        <RadzenText Text=@(stat) TextStyle="TextStyle.H5"/>
     }
 </RadzenStack>
 

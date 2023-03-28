@@ -11,7 +11,6 @@ namespace PSASH.Infrastructure.Services.GrpcBased
         private readonly IDatasetService<MonoTimeSeries> _datasetService;
         private readonly ISendingClient _sendingClient;
 
-
         public MonoDatasetSender(IDatasetService<MonoTimeSeries> datasetService, ISendingClient sendingClient)
         {
             _datasetService = datasetService == null ? throw new ArgumentNullException(
@@ -27,6 +26,7 @@ namespace PSASH.Infrastructure.Services.GrpcBased
         {
             var datasetShards = dataset
                 .GetValues()
+                .AsParallel()
                 .Select(_datasetService.LoadTimeSeries)
                 .Select(ConvertToTimeSeriesDto)
                 .Select(ts => new DatasetShard(rewrite, dataset.Name, ts));
@@ -37,6 +37,9 @@ namespace PSASH.Infrastructure.Services.GrpcBased
                 Result.Ok(res.Message) :
                 Result.Error(res.Message);
         }
+
+        public async Task<List<string>> GetLoadedDatasetNames()
+            => await _sendingClient.GetLoadedDatasetNames();
 
         public TimeSeriesDto ConvertToTimeSeriesDto(MonoTimeSeries ts)
             => new(ts.GetValues().ToList(),
