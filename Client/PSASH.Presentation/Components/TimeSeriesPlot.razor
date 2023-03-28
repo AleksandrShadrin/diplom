@@ -1,11 +1,145 @@
-﻿@using PSASH.Presentation.Models;
-<h3>TimeSeriesPlot</h3>
+@using PSASH.Presentation.Models;
+@using PSASH.Presentation.Services;
+
+@inject ITimeSeriesTransformer TimeSeriesTransformer
+
+<RadzenRadioButtonList @bind-Value="TransformType">
+    <Items>
+        <RadzenRadioButtonListItem Text="FFT" Value="TransformationType.FFT" />
+        <RadzenRadioButtonListItem Text="Скользящая средняя (k = 3)" Value="TransformationType.AVERAGE_MOVING3" />
+        <RadzenRadioButtonListItem Text="Скользящая средняя (k = 5)" Value="TransformationType.AVERAGE_MOVING5" />
+        <RadzenRadioButtonListItem Text="SPLINE" Value="TransformationType.SPLINE" />
+        <RadzenRadioButtonListItem Text="Default" Value="TransformationType.DEFAULT"/>
+    </Items>
+</RadzenRadioButtonList>
+
+@if(values is not null)
+{
+    <RadzenChart>
+        <RadzenLineSeries Interpolation="@((TransformType is TransformationType.SPLINE) ? Interpolation.Spline : Interpolation.Line)" Data="@GetCuttedValues()" ValueProperty="Y" CategoryProperty="X" Title="Временной ряд" LineType="LineType.Solid">
+            <RadzenChartTooltipOptions Visible="@ToolTipIsVisible()" />
+            <RadzenMarkers MarkerType="MarkerType.None" />
+            <RadzenSeriesDataLabels Visible="@false" />
+            <RadzenLegend Position="LegendPosition.Bottom" />
+        </RadzenLineSeries>
+        <RadzenCategoryAxis Padding="20" />
+        <RadzenValueAxis Formatter="RoundValue">
+            <RadzenGridLines Visible="true" />
+            <RadzenAxisTitle Text="Значения" />
+        </RadzenValueAxis>
+    </RadzenChart>
+} else
+{
+    <div class="h-100 d-flex justify-content-center align-items-center">
+        <div class="spinner-border" role="status">
+        </div>
+    </div>
+}
+@if (TimeSeriesDto.Values.Count > MaxPoints)
+{
+    <input type="range" class="form-range" min="0" max="@maxShift" step="1" @bind="shift" @bind:event="oninput" />
+}
 
 @code {
+    [Parameter]
+    public TimeSeriesDto TimeSeriesDto { get => timeSeriesDto;
+        set
+        {
+            timeSeriesDto = value;
+            UpdateValues();
+        }
+    }
 
-	[Parameter]
-	public TimeSeriesDto timeSeries { get; set; }
+    [Parameter]
+    public EventCallback<TimeSeriesDto> TimeSeriesDtoChanged { get; set; }
 
+    [Parameter]
+    public int MaxPoints { get; set; } = 800;
 
+    [Parameter]
+    public TransformationType TransformType { 
+        get => transformType; 
+        set
+        {
+            transformType = value;
+            UpdateValues();
+        }
+    }
 
+    private TransformationType transformType = TransformationType.DEFAULT;
+
+    private int shift = 0;
+    private int maxShift = 0;
+
+    private List<Point> values;
+
+    private TimeSeriesDto timeSeriesDto = default;
+
+    private string RoundValue(object value)
+    {
+        var res = (double)value;
+
+        return Double.Round(res, 8).ToString();
+    }
+
+    private IEnumerable<Point> GetCuttedValues()
+        => values
+                .Skip(shift * MaxPoints)
+                .Take(MaxPoints)
+                .ToList();
+
+    private async Task UpdateValues()
+    {
+        values = default;
+
+        await Task.Delay(200);
+
+        values = GetValues().ToList();
+        
+        maxShift = values.Count / MaxPoints;
+
+        if (shift > maxShift)
+            shift = maxShift - 1;
+        StateHasChanged();
+    }
+
+    private bool ToolTipIsVisible()
+        => TimeSeriesDto is not null && TimeSeriesDto.Values.Count <= 1000;
+
+    private IEnumerable<Point> GetValues()
+    {
+        if (TimeSeriesDto is not null)
+        {
+            return TransformValues(TimeSeriesDto.Values)
+                .Select((y, idx) => new Point(idx, y));
+        }
+
+        return Enumerable.Empty<Point>();
+    }
+
+    private List<double> TransformValues(List<double> values)
+        => TransformType switch
+        {
+            TransformationType.FFT => TimeSeriesTransformer
+                .FastFourierTransform(values)
+                .ToList(),
+            TransformationType.AVERAGE_MOVING3 => TimeSeriesTransformer
+                .AverageMoving(values, 3)
+                .ToList(),
+            TransformationType.AVERAGE_MOVING5 => TimeSeriesTransformer
+                .AverageMoving(values, 5)
+                .ToList(),
+            _ => values
+        };
+
+    private record struct Point(double X, double Y);
+
+    public enum TransformationType
+    {
+        FFT,
+        DEFAULT,
+        AVERAGE_MOVING3,
+        AVERAGE_MOVING5,
+        SPLINE
+    }
 }

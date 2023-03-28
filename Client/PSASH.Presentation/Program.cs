@@ -13,6 +13,9 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<TooltipService>();
 builder.Services.AddScoped<ContextMenuService>();
 builder.Services.AddScoped<ITimeSeriesInfoService, TimeSeriesInfoService>();
+builder.Services.AddSingleton<ITimeSeriesTransformer, TimeSeriesTransformer>();
+builder.Services.AddSingleton<AppStateService>();
+builder.Services.AddTransient<ServerStateCheckerService>();
 
 var app = builder.Build();
 

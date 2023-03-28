@@ -1,4 +1,6 @@
-﻿using Grpc.Net.Client;
+﻿using Grpc.Client.Models;
+using Grpc.Core;
+using Grpc.Net.Client;
 using Sending;
 
 namespace Grpc.Client
@@ -34,18 +36,45 @@ namespace Grpc.Client
 
             using var call = client.SendDataset();
 
+            var datasetShardsToSend = new List<Models.DatasetShard>();
+
+            var task = default(Task);
+
             foreach (var datasetShard in datasetShards)
             {
-                var dataShard = datasetShard.ToGrpcDatasetShard();
-                await call.RequestStream.WriteAsync(dataShard);
+                datasetShardsToSend.Add(datasetShard);
+
+                if (datasetShardsToSend.Count is 100)
+                {
+                    if (task is not null)
+                        await task;
+
+                    task = SendDatasetShards(datasetShardsToSend, call);
+                    datasetShardsToSend = new();
+                }
             }
+
+            if (task is not null)
+                await task;
+
+            await SendDatasetShards(datasetShardsToSend, call);
 
             await call.RequestStream.CompleteAsync();
 
             var res = await call;
 
             return Models.Response.FromProtobufResponse(res);
+        }
 
+        private async Task SendDatasetShards(List<Models.DatasetShard> shards, 
+            AsyncClientStreamingCall<Sending.DatasetShard,
+            SendResponse> streamingCall)
+        {
+            foreach(var datasetShard in shards)
+            {
+                var dataShard = datasetShard.ToGrpcDatasetShard();
+                await streamingCall.RequestStream.WriteAsync(dataShard);
+            }
         }
     }
 }

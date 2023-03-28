@@ -21,7 +21,7 @@ class BaseTransformer:
     def save(self, **kwargs):
         """Save transformer parameters"""
         raise NotImplementedError("BaseTransformer don't imlement this method")
-    
+
 class TransformTimeSeries(BaseTransformer):
     def __init__(self):
         self.transformer = BoxCoxTransformer()
@@ -46,7 +46,3 @@ class TransformTimeSeries(BaseTransformer):
     
     def save(self, **kwargs):
         return super().save(**kwargs)
-    
-
-    
-    

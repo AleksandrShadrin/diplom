@@ -1,3 +1,4 @@
+from multiprocessing import Pool
 from services.BaseDatasetService import BaseDatasetService
 from models.TimeSeries import TimeSeries
 from models.Dataset import Dataset
@@ -11,7 +12,8 @@ import os
 import shutil
 from dacite import from_dict
 from typing import List, Union
-
+import gzip
+import orjson
 
 class JsonDatasetService(BaseDatasetService):
 
@@ -41,10 +43,10 @@ class JsonDatasetService(BaseDatasetService):
     def load_dataset(self, **kwargs) -> Union[Dataset, None]:
         """
         Load dataset from storage
-        
+
         Keyword arguments:
         name - str, name of dataset
-        
+
         returns:
         Dataset - dataset loaded from storage or None 
         when name don't specified or dataset don't exist
@@ -59,17 +61,16 @@ class JsonDatasetService(BaseDatasetService):
             return None
 
         timeseries_names = os.listdir(path)
+        path_to_ts = [os.path.join(path, name) for name in timeseries_names]
 
-        timeseries_list = [
-            self._load_file(os.path.join(path, name))
-            for name in timeseries_names
-        ]
+        pool = Pool(processes=6)
+        timeseries_list = pool.map(self._load_file, path_to_ts)
 
         return Dataset(timeseries_list, dataset_name)
 
     def get_dataset_names(self) -> List[str]:
         """get names of datasets in storage
-        
+
         returns:
         List[str] - list of dataset names
         """
@@ -82,12 +83,12 @@ class JsonDatasetService(BaseDatasetService):
 
     def _load_file(self, path: str) -> TimeSeries:
         """Load TimeSeries from file
-        
+
         Parameters:
         path - str: path to file
         """
         data = None
-        with open(path, encoding='utf-8') as fr:
+        with gzip.open(path, 'rt', encoding='utf-8') as fr:
             data = json.load(fr)
 
         timeseries = from_dict(data_class=TimeSeries, data=data)
@@ -96,21 +97,20 @@ class JsonDatasetService(BaseDatasetService):
     def _write_dataset_on_disk(self, path: str, dataset: Dataset) -> Result:
         """
         Write dataset on disk as json files
-        
+
         params:
         path: str - path to save folder
         dataset: Dataset - dataset that should be saved
-        
+
         returns:
         Result - ERROR or OK state of operation
         """
         for ts in dataset.time_series:
             try:
-                with open(os.path.join(path,
-                                       str(uuid.uuid1()) + '.json'),
-                          'w',
-                          encoding='utf-8') as fw:
-                    json.dump(asdict(ts), fw)
+                with gzip.open(os.path.join(path,
+                                            str(uuid.uuid1()) + '.json.gz'),
+                               'wb') as fw:
+                    fw.write(orjson.dumps(ts))
 
             except OSError:
                 return Result.ERROR
@@ -124,13 +124,13 @@ class JsonDatasetService(BaseDatasetService):
     def _try_recreate_folder(self, path: str) -> Result:
         """
         Try delete folder
-        
+
         params:
         path: str - path of folder
-        
+
         returns:
         Result - OK or ERROR state of operation
-        
+
         """
         if os.path.exists(path):
             try:

@@ -1,7 +1,113 @@
 ﻿@page "/"
+@using Grpc.Client;
+@using PSASH.Core.Entities;
+@using PSASH.Infrastructure.Exceptions;
+@using PSASH.Infrastructure.Services.GrpcBased;
 
-<RadzenText Text="Selected dataset:"/>
+@implements IDisposable
 
+@inject IFileBasedMonoDatasetService fileBasedDatasetService
+@inject AppStateService AppStateService
+@inject IDatasetSender DatasetSender
+@inject ServerStateCheckerService ServerStateChecker
+
+<RadzenRow Gap="1rem" class="mt-4 container-fluid" JustifyContent="JustifyContent.Right" Style="min-height:400px;">
+    @if (Dataset is not null)
+    {
+        if (serverState is true)
+        {
+            <RadzenColumn Size="8" class="card bg-primary p-4 bg-opacity-75 justify-content-between">
+                <RadzenText Text=@($"Выбран набор данных: {Dataset.Name}") class="text-white" />
+                <RadzenButton class="align-self-center" Text="Отправить" Click="SendDataset"  ButtonStyle="ButtonStyle.Primary" Style="max-width:8rem;" />
+            </RadzenColumn>
+        }
+        else
+        {
+            <RadzenColumn Size="8" class="card bg-secondary p-4 justify-content-between">
+                <RadzenStack Orientation="Orientation.Vertical">
+                    <RadzenText Text="Соединение с сервером не установлено" class="text-white text-opacity-50" />
+                </RadzenStack>
+                <RadzenButton class="align-self-center" Text="Отправить" ButtonStyle="ButtonStyle.Dark" Disabled=true Style="max-width:8rem;" />
+            </RadzenColumn>
+        }
+    }
+    else
+    {
+        <RadzenColumn Size="8" class="card bg-secondary p-4 justify-content-between">
+            <RadzenStack Orientation="Orientation.Vertical">
+                <RadzenText Text="Набор данных не выбран" class="text-white text-opacity-50" />
+            </RadzenStack>
+            <RadzenButton class="align-self-center" Text="Отправить" ButtonStyle="ButtonStyle.Dark" Disabled=true Style="max-width:8rem;" />
+        </RadzenColumn>
+    }
+    @if (serverState is true)
+    {
+        <RadzenColumn Size="4" class="card bg-primary bg-opacity-50 p-4">
+            <RadzenText Text="Отправленные наборы данных" class="text-white" />
+            <PSASH.Presentation.Components.NameList Names="DatasetNames" />
+        </RadzenColumn>
+    }
+    else
+    {
+        <RadzenColumn Size="4" class="card bg-secondary bg-opacity-50 p-4">
+            <RadzenText Text="Соединение с сервером необнаруженно" class="text-white" />
+            <PSASH.Presentation.Components.NameList Names="DatasetNames" />
+        </RadzenColumn>
+    }
+</RadzenRow>
 @code {
+    bool serverState = false;
 
+    Dataset Dataset { get; set; } = default;
+    List<string> DatasetNames = new();
+    CancellationTokenSource tokenSource = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Dataset = AppStateService.Dataset;
+
+        AppStateService.OnDatasetChange += StateHasChanged;
+        AppStateService.OnDatasetChange += OnDatasetSelected;
+
+        await ServerStateChecker.StartAsync(500, OnServerStateChanged, tokenSource.Token);
+    }
+
+    private void OnDatasetSelected()
+    {
+        try
+        {
+            Dataset = AppStateService.Dataset;
+        }
+        catch (InfrastructureException ex)
+        { }
+    }
+
+    private void OnServerStateChanged(bool state)
+    {
+        serverState = state;
+
+        if (state is true)
+            InvokeAsync(UpdateDatasetNames);
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateDatasetNames()
+    {
+        DatasetNames = await DatasetSender.GetLoadedDatasetNames();
+        StateHasChanged();
+    }
+
+    private async Task SendDataset()
+    {
+        var res = await DatasetSender.SendDataset(Dataset, true);
+    }
+
+    public void Dispose()
+    {
+        AppStateService.OnDatasetChange -= OnDatasetSelected;
+        AppStateService.OnDatasetChange -= StateHasChanged;
+
+        tokenSource.Cancel();
+    }
 }
