@@ -88,8 +88,8 @@ class JsonDatasetService(BaseDatasetService):
         path - str: path to file
         """
         data = None
-        with gzip.open(path, 'rt', encoding='utf-8') as fr:
-            data = json.load(fr)
+        with gzip.open(path, 'rb') as fr:
+            data = orjson.loads(fr.read())
 
         timeseries = from_dict(data_class=TimeSeries, data=data)
         return timeseries
