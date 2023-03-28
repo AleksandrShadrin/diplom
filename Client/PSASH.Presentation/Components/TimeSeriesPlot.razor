@@ -1,4 +1,4 @@
-﻿@using PSASH.Presentation.Models;
+@using PSASH.Presentation.Models;
 @using PSASH.Presentation.Services;
 
 @inject ITimeSeriesTransformer TimeSeriesTransformer
@@ -39,7 +39,6 @@
 {
     <input type="range" class="form-range" min="0" max="@maxShift" step="1" @bind="shift" @bind:event="oninput" />
 }
-
 
 @code {
     [Parameter]
