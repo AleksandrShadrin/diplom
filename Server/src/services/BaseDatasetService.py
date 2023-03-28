@@ -2,6 +2,7 @@ from typing import List
 from models.AppConfig import AppConfig
 from models.Dataset import Dataset
 from models.Result import Result
+from models.TimeSeries import TimeSeries
 
 
 class BaseDatasetService:

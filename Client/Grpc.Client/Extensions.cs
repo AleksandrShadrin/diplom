@@ -8,7 +8,7 @@ namespace Grpc.Client
     {
         public static IServiceCollection RegisterGrpcClients(this IServiceCollection services)
         {
-            services.AddSingleton<ISendingClient, SendingClient>(o =>
+            services.AddTransient<ISendingClient, SendingClient>(o =>
             {
                 var config = o.GetService<IConfiguration>();
 
@@ -18,8 +18,19 @@ namespace Grpc.Client
                 return new SendingClient(channel);
             });
 
+            services.AddTransient<IHealthClient, HealthClient>(o =>
+            {
+                var config = o.GetService<IConfiguration>();
+
+                var url = config.GetSection("Server")["url"];
+                var channel = GrpcChannel.ForAddress(url);
+
+                return new HealthClient(channel);
+            });
+
+            services.AddSingleton<ServerStatusService>();
+
             return services;
         }
-
     }
 }

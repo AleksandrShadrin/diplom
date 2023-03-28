@@ -61,7 +61,7 @@ namespace PSASH.Infrastructure.Services.FileBased
             if (_dataset is null)
                 throw new DatasetNotLoadedException();
 
-            if (_dataset.GetValues().Any(tsi => tsi == info))
+            if (_dataset.GetValues().Contains(info))
             {
                 var filePath = GetFilePath(info);
                 return _timeSeriesConverter.Convert(filePath);
@@ -100,6 +100,9 @@ namespace PSASH.Infrastructure.Services.FileBased
         /// </exception>
         private void ValidateDatasetStructure(string path)
         {
+            if (String.IsNullOrWhiteSpace(path))
+                throw new PathDontExistException(path);
+
             var directories = Directory.GetDirectories(path);
 
             // Проверка на наличие ненужных папок в датасете

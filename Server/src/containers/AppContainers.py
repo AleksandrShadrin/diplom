@@ -4,6 +4,7 @@ from factories.config_factory import build_config
 from models.AppConfig import AppConfig
 from services.JsonDatasetService import JsonDatasetService
 from services.SendingService import SendingService
+from services.health import HealthService
 from server import Server
 
 
@@ -21,4 +22,8 @@ class AppContainer(containers.DeclarativeContainer):
     sending_service = providers.Singleton(SendingService,
                                           dataset_service=json_dataset_service)
 
-    server = providers.Factory(Server, sending_service=sending_service)
+    health_service = providers.Singleton(HealthService)
+
+    server = providers.Factory(Server,
+                               sending_service=sending_service,
+                               health_service=health_service)

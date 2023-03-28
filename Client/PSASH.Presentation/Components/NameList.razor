@@ -1,0 +1,13 @@
+﻿<RadzenDataList AllowVirtualization=true Style=@($"height:{HeightPx}px;") class="w-100 overflow-scroll" Data="Names" PageSize="4" >
+    <Template Context="name">
+            @name
+    </Template>
+</RadzenDataList>
+
+@code {
+    [Parameter]
+    public List<string> Names { get; set; } = new();
+
+    [Parameter]
+    public int HeightPx { get; set; } = 400;
+}
