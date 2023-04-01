@@ -1,15 +1,15 @@
 import os
-from typing import Dict
+from typing import Any, Dict
 from models.TimeSeries import TimeSeries
 from models.Dataset import Dataset
 from sklearn.preprocessing import LabelEncoder
 import pickle
 import gzip
 from models.Result import Result
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-import joblib, orjson
+import joblib
+import orjson
 import numpy as np
 
 
@@ -120,13 +120,19 @@ class BasePredictor:
         raise NotImplementedError("BasePredictor don't imlement this method")
 
 
-class RandomForestPredictor(BasePredictor):
+class SkLearnPredictor(BasePredictor):
     """Predictor that based on random forest classifier"""
-    classifier: RandomForestClassifier
+    classifier: Any
     _train_stats: Dict[str, float]
 
-    def __init__(self, id: str, path: str) -> None:
-        self.classifier = RandomForestClassifier(n_estimators=400)
+    def __init__(self, id: str, path: str, classifier: Any) -> None:
+        """Initialize of SkLearnPredictor
+        params: 
+        id: str - id of predictor
+        path: str - path to folder of application
+        classifier: Any - classifier from sklearn
+        """
+        self.classifier = classifier
         super().__init__(id, path)
 
     def _save_model(self) -> Result:

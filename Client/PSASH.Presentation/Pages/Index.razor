@@ -88,14 +88,14 @@
 
         if (state is true)
             InvokeAsync(UpdateDatasetNames);
-
-        InvokeAsync(StateHasChanged);
+        else 
+            InvokeAsync(StateHasChanged);
     }
 
     private async Task UpdateDatasetNames()
     {
         DatasetNames = await DatasetSender.GetLoadedDatasetNames();
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SendDataset()

@@ -1,23 +1,23 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
 
-namespace Grpc.Client
+namespace Grpc.Client.HealthCheck
 {
     public class HealthClient : IHealthClient
     {
         private readonly GrpcChannel _channel;
-        private readonly Health.Health.HealthClient _client;
 
         public HealthClient(GrpcChannel channel)
         {
-            _client = new Health.Health.HealthClient(channel);
+            _channel = channel;
         }
 
         public async Task<bool> ServerIsServing()
         {
+            var client = new Health.Health.HealthClient(_channel);
             try
             {
-                var result = await _client.CheckAsync(new());
+                var result = await client.CheckAsync(new());
 
                 if (result.Status == Health.ServingStatus.Serving)
                     return true;

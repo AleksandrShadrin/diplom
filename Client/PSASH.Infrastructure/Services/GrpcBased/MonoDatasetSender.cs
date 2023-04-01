@@ -1,4 +1,4 @@
-﻿using Grpc.Client;
+﻿using Grpc.Client.ClientForSending;
 using Grpc.Client.Models;
 using PSASH.Application.Services;
 using PSASH.Core.Entities;

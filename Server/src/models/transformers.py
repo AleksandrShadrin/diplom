@@ -6,26 +6,27 @@ from sktime.datatypes._panel._convert import from_2d_array_to_nested
 from sktime.transformations.panel.rocket import MiniRocket
 import numpy as np
 
+
 class BaseTransformer:
     """Base TimeSeries transformer"""
-    
+
     id: str
     path: str
-    
     """
     Parameters: 
     id: str - id of dataset
     path: str - path to application models storage
     """
+
     def __init__(self, id: str, path: str):
         self.id = id
         self.path = path
-        
+
     def fit(self, dataset: Dataset):
         """Train transformer using dataset"""
         raise NotImplementedError("BaseTransformer don't imlement this method")
 
-    def transform(self, time_series: TimeSeries):
+    def transform(self, time_series: TimeSeries) -> TimeSeries:
         """Transform TimeSeries"""
         raise NotImplementedError("BaseTransformer don't imlement this method")
 
@@ -36,61 +37,56 @@ class BaseTransformer:
     def save(self, **kwargs):
         """Save transformer parameters"""
         raise NotImplementedError("BaseTransformer don't imlement this method")
-    
-    
+
     def _get_path(self) -> str:
         """Return path to transformer of model"""
         return os.path.join(self.path, self.id)
-    
-    
+
     def _get_transformer_name():
         """Should return transformer filename"""
         raise NotImplementedError("BaseTransformer don't imlement this method")
-        
-    
-    
+
 
 class MiniRocketTimeSeriesTransformer(BaseTransformer):
     """
     Class transform time_series using
     BoxCox transfomation
     """
-    
     """
     Parameters: 
     id: str - id of dataset
     path: str - path to application models storage
     """
-    
+
     def __init__(self, id: str, path: str):
         super().__init__(id, path)
         self.transformer = MiniRocket()
-        
-    
-    def transform(self, time_series: TimeSeries):
+
+    def transform(self, time_series: TimeSeries) -> TimeSeries:
         values = np.array(time_series.values)
         transformed_values = self.transformer.transform(values)
-        
-        timeSeries = TimeSeries(timeseries_class=time_series.timeseries_class, 
-                                id=time_series.id, values=transformed_values.values[0])
-        
+
+        timeSeries = TimeSeries(timeseries_class=time_series.timeseries_class,
+                                id=time_series.id,
+                                values=transformed_values.values[0])
+
         return timeSeries
-    
+
     def fit(self, dataset: Dataset):
         time_series_list = dataset.time_series
-        values = [time_series.values for 
-                  time_series in time_series_list]
-            
+        values = [time_series.values for time_series in time_series_list]
+
         time_series_df = pd.DataFrame(values)
-        
+
         nested_array = from_2d_array_to_nested(time_series_df)
-        
+
         return self.transformer.fit(nested_array)
 
     def load(self, **kwargs):
-        path = os.path.join(self._get_path(), self._get_transformer_name() + '.zip')
+        path = os.path.join(self._get_path(),
+                            self._get_transformer_name() + '.zip')
         self.transformer = self.transformer.load_from_path(path)
-    
+
     def save(self, **kwargs):
         path = self._get_path()
         path_with_file_name = os.path.join(path, self._get_transformer_name())
@@ -99,6 +95,6 @@ class MiniRocketTimeSeriesTransformer(BaseTransformer):
         else:
             os.makedirs(path)
             self.transformer.save(path_with_file_name)
-    
+
     def _get_transformer_name(self):
         return 'transformer'

@@ -1,6 +1,6 @@
 ﻿using Grpc.Client.Models;
 
-namespace Grpc.Client
+namespace Grpc.Client.ClientForSending
 {
     public interface ISendingClient
     {

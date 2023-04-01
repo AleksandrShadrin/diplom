@@ -3,7 +3,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using Sending;
 
-namespace Grpc.Client
+namespace Grpc.Client.ClientForSending
 {
     public class SendingClient : ISendingClient, IDisposable
     {
@@ -30,7 +30,7 @@ namespace Grpc.Client
             return names.Names.ToList();
         }
 
-        public async Task<Models.Response> SendDataset(IEnumerable<Models.DatasetShard> datasetShards)
+        public async Task<Response> SendDataset(IEnumerable<Models.DatasetShard> datasetShards)
         {
             var client = new DatasetSender.DatasetSenderClient(_channel);
 
@@ -63,14 +63,14 @@ namespace Grpc.Client
 
             var res = await call;
 
-            return Models.Response.FromProtobufResponse(res);
+            return Response.FromProtobufResponse(res);
         }
 
-        private async Task SendDatasetShards(List<Models.DatasetShard> shards, 
+        private async Task SendDatasetShards(List<Models.DatasetShard> shards,
             AsyncClientStreamingCall<Sending.DatasetShard,
             SendResponse> streamingCall)
         {
-            foreach(var datasetShard in shards)
+            foreach (var datasetShard in shards)
             {
                 var dataShard = datasetShard.ToGrpcDatasetShard();
                 await streamingCall.RequestStream.WriteAsync(dataShard);

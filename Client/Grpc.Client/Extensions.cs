@@ -1,4 +1,6 @@
-﻿using Grpc.Net.Client;
+﻿using Grpc.Client.ClientForSending;
+using Grpc.Client.HealthCheck;
+using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

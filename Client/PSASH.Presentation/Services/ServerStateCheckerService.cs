@@ -1,4 +1,4 @@
-﻿using Grpc.Client;
+﻿using Grpc.Client.HealthCheck;
 
 namespace PSASH.Presentation.Services
 {
