@@ -1,0 +1,212 @@
+﻿@page "/learning/{datasetName}"
+@using PSASH.Application.Services;
+@using PSASH.Core.Constants;
+@using PSASH.Core.Entities;
+@using PSASH.Core.ValueObjects;
+@using PSASH.Infrastructure.Services.GrpcBased;
+
+@implements IDisposable
+
+@inject ServerStateCheckerService ServerStateChecker
+@inject IDatasetSender DatasetSender
+@inject NotificationService notificationService
+@inject ILearningService learningService
+
+<RadzenStack class="pb-4" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
+    <RadzenCard class="w-100 bg-primary bg-opacity-75">
+        <RadzenText Text=@($"Обучение модели для набора данных: {DatasetName}") TextStyle="TextStyle.DisplayH4" class="text-white" />
+    </RadzenCard>
+</RadzenStack>
+
+@if (serverState is false)
+{
+    <RadzenCard class="bg-secondary bg-opacity-50 w-100 mx-auto m-2" Style="min-height:400px;">
+        <RadzenText Text="Сервер отключен" TextStyle="TextStyle.DisplayH3" TextAlign="TextAlign.Center" class="text-white" />
+    </RadzenCard>
+}
+else if (nameExist is false)
+{
+    <RadzenCard class="bg-secondary bg-opacity-50 w-100 mx-auto m-2" Style="min-height:400px;">
+        <RadzenText Text="Данный набор данных не отправлен" TextStyle="TextStyle.DisplayH3" TextAlign="TextAlign.Center" class="text-white" />
+    </RadzenCard>
+}
+else
+{
+    <RadzenRow Gap="1rem" class="mt-4 container-fluid" JustifyContent="JustifyContent.Right" Style="min-height:400px;">
+        <RadzenColumn Size="6">
+            <RadzenCard class="w-100 mx-auto" Style="min-height:400px;">
+                <PSASH.Presentation.Components.NameList Names="modelNames" @bind-SelectedName="selectedModelName" />
+
+                @if (String.IsNullOrWhiteSpace(selectedModelName) is false)
+                {
+                    <RadzenButton Text="Обучить" Click="TrainModel" />
+                }
+
+            </RadzenCard>
+        </RadzenColumn>
+        <RadzenColumn Size="6">
+            <RadzenCard class="w-100 mx-auto h-100" Style="min-height:400px;">
+                <RadzenTabs TabPosition="TabPosition.Left" RenderMode="TabRenderMode.Client">
+                    <Tabs>
+                        <RadzenTabsItem Text="Заполнение">
+                            <RadzenRadioButtonList @bind-Value="FillOption" Orientation="Orientation.Vertical">
+                                <Items>
+                                    <RadzenRadioButtonListItem Text="добавить значения по бокам" Value="FillOption.FILL_BOTH" />
+                                    <RadzenRadioButtonListItem Text="добавить значения слева" Value="FillOption.FILL_LEFT" />
+                                    <RadzenRadioButtonListItem Text="добавить значения справа" Value="FillOption.FILL_RIGHT" />
+                                </Items>
+                            </RadzenRadioButtonList>
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Обрезание">
+                            <RadzenRadioButtonList @bind-Value="CutOption" Orientation="Orientation.Vertical">
+                                <Items>
+                                    <RadzenRadioButtonListItem Text="обрезать значения по бокам" Value="CutOption.CUT_BOTH" />
+                                    <RadzenRadioButtonListItem Text="обрезать значения слева" Value="CutOption.CUT_LEFT" />
+                                    <RadzenRadioButtonListItem Text="обрезать значения справа" Value="CutOption.CUT_RIGHT" />
+                                </Items>
+                            </RadzenRadioButtonList>
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Длина временного ряда">
+                            <RadzenNumeric TValue="int" @bind-Value="TimeSeriesLength"/>
+                        </RadzenTabsItem>
+                    </Tabs>
+                </RadzenTabs>
+            </RadzenCard>
+        </RadzenColumn>
+    </RadzenRow>
+}
+
+
+
+
+@code {
+    [Parameter]
+    public string DatasetName { get; set; } = string.Empty;
+
+    private CancellationTokenSource cancellationTokenSource = new();
+
+    private string selectedModelName = string.Empty;
+
+    private bool serverState = false;
+    private bool nameExist = false;
+    private List<string> modelNames = new();
+
+    public FillOption FillOption
+    {
+        get => options.FillOption;
+        set
+        {
+            options = options with { FillOption = value };
+        }
+    }
+    public CutOption CutOption
+    {
+        get => options.CutOption;
+        set
+        {
+            options = options with { CutOption = value };
+        }
+    }
+
+    public int TimeSeriesLength
+    {
+        get => options.TimeSeriesLength;
+        set
+        {
+            options = options with { TimeSeriesLength = value };
+        }
+    }
+
+    private TrainOptions options = new(100, CutOption.CUT_BOTH, FillOption.FILL_BOTH);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ServerStateChecker
+            .StartAsync(500, OnServerStateChanged, cancellationTokenSource.Token);
+    }
+
+    private void OnServerStateChanged(bool state)
+    {
+        serverState = state;
+
+        if (state is true)
+        {
+            InvokeAsync(CheckThatNameExist);
+            InvokeAsync(GetModelsNames);
+        }
+        else
+        {
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task GetModelsNames()
+    {
+        var models = await learningService.GetUntrainedModels();
+
+        modelNames = models
+            .Select(m => m.Name)
+            .ToList();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CheckThatNameExist()
+    {
+        var names = await DatasetSender.GetLoadedDatasetNames();
+
+        if (names.Contains(DatasetName))
+        {
+            nameExist = true;
+        }
+        else
+        {
+            nameExist = false;
+            notificationService.Notify(nameDontExist);
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task TrainModel()
+    {
+        var selectedModel = new UntrainedModel(selectedModelName, DatasetName);
+
+        var res = await learningService.TrainModel(selectedModel, options);
+
+        if (res is true)
+            notificationService.Notify(successOnModelTrained);
+        else
+            notificationService.Notify(errorOnModelTrained);
+    }
+
+    private static NotificationMessage errorOnModelTrained = new NotificationMessage()
+        {
+            Severity = NotificationSeverity.Error,
+            Summary = "Ошибка",
+            Detail = "Модель не обучена.",
+            Duration = 4000
+        };
+
+    private static NotificationMessage successOnModelTrained = new NotificationMessage()
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Успех",
+            Detail = "Модель обучена.",
+            Duration = 4000
+        };
+
+    private static NotificationMessage nameDontExist = new NotificationMessage()
+        {
+            Severity = NotificationSeverity.Error,
+            Summary = "Ошибка",
+            Detail = "Набора данных нет на сервере.",
+            Duration = 4000
+        };
+
+    public void Dispose()
+    {
+        cancellationTokenSource.Cancel();
+        cancellationTokenSource.Dispose();
+    }
+}

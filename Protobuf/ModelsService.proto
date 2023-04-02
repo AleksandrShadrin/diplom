@@ -4,7 +4,7 @@ package models;
 service ModelsService {
   rpc GetModelPrediction(ModelPredictionRequest)
       returns (ModelPredictionResponse);
-  rpc GetModelsPredictions(stream ModelPredictionRequest)
+  rpc GetModelPredictions(stream ModelPredictionRequest)
       returns (stream ModelPredictionResponse);
 }
 

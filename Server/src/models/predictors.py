@@ -76,11 +76,13 @@ class BasePredictor:
 
     def save(self, **kwargs) -> Result:
         """Save predictor parameters"""
-        if os.path.exists(self.path) is False:
-            os.makedirs(self.path)
+        path = os.path.join(self.path, self.id)
+
+        if os.path.exists(path) is False:
+            os.makedirs(path)
 
         try:
-            with gzip.open(os.path.join(self.path, 'encoder.data'), 'wb') as f:
+            with gzip.open(os.path.join(path, 'encoder.data'), 'wb') as f:
                 pickle.dump(self._label_encoder, f)
         except OSError:
             return Result.ERROR

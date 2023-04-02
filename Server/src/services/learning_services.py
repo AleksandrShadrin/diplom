@@ -93,10 +93,14 @@ class LearningService(BaseLearningService):
                                              id,
                                              path=self._get_models_folder())
 
-        intellectual_model = ClassificationModel(predictor, transformer,
-                                                 learning_parameters)
+        intellectual_model = ClassificationModel(
+            predictor,
+            transformer,
+            learning_parameters,
+            path=self._get_models_folder(),
+            id=id)
 
-        res = intellectual_model.train()
+        res = intellectual_model.train(dataset)
         if res == Result.ERROR:
             return res
 
@@ -164,7 +168,8 @@ class LearningService(BaseLearningService):
     def _get_transformers_names(self) -> List[str]:
         return ['MiniRocket']
 
-    def _init_transformer(name: str, id: str, path: str) -> BaseTransformer:
+    def _init_transformer(self, name: str, id: str,
+                          path: str) -> BaseTransformer:
         """Initialize transformer by it's name and id"""
         if name == 'MiniRocket':
             return MiniRocketTimeSeriesTransformer(id=id, path=path)
@@ -206,7 +211,7 @@ class LearningService(BaseLearningService):
 
         try:
             with open(os.path.join(path, 'model_info.json'), 'wb') as f:
-                f.write(orjson.dumps(info))
+                f.write(orjson.dumps(info, option=orjson.OPT_SERIALIZE_NUMPY))
         except OSError:
             return Result.ERROR
 

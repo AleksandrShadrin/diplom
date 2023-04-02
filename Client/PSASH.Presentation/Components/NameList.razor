@@ -1,6 +1,6 @@
-﻿<RadzenDataList AllowVirtualization=true Style=@($"height:{HeightPx}px;") class="w-100 overflow-scroll" Data="Names" PageSize="4" >
+﻿<RadzenDataList AllowVirtualization=true Style=@($"height:{HeightPx}px;") class="w-100 overflow-scroll" Data="Names" PageSize="4">
     <Template Context="name">
-            @name
+        <div class=@($"{(name==SelectedName ? "text-decoration-underline text-success" : "")}") style="cursor:pointer;" @onclick="(async (args) => await OnElementClick(name))">@name</div>
     </Template>
 </RadzenDataList>
 
@@ -10,4 +10,16 @@
 
     [Parameter]
     public int HeightPx { get; set; } = 400;
+
+    [Parameter]
+    public string SelectedName { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> SelectedNameChanged { get; set; }
+
+
+    private async Task OnElementClick(string name)
+    {
+        await SelectedNameChanged.InvokeAsync(name);
+    }
 }

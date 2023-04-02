@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using PSASH.Application.Services;
 using PSASH.Core.Entities;
+using PSASH.Infrastructure.Services;
 using PSASH.Infrastructure.Services.FileBased;
 using PSASH.Infrastructure.Services.FileBased.Converter;
 using PSASH.Infrastructure.Services.GrpcBased;
@@ -18,7 +19,10 @@ namespace PSASH.Infrastructure
                 .AddSingleton<IDatasetService<MonoTimeSeries>>(o
                     => o.GetRequiredService<IFileBasedMonoDatasetService>())
                 .RegisterGrpcClients()
-                .AddSingleton<IDatasetSender, MonoDatasetSender>();
+                .AddSingleton<IDatasetSender, MonoDatasetSender>()
+                .AddTransient<ITrainedModelsLoader, TrainedModelsLoader>()
+                .AddSingleton<IMonoTimeSeriesModelTrainer, MonoTimeSeriesModelTrainer>()
+                .AddSingleton<ILearningService, MonoTimeSeriesLearningService>();
 
             return services;
         }

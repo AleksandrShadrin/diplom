@@ -43,7 +43,7 @@ class LearningGrpcService(LearningServiceServicer):
 
     def TrainModel(self, request: Model, context):
 
-        dataset = self.dataset_service.load_dataset(request.dataset_name)
+        dataset = self.dataset_service.load_dataset(name=request.dataset_name)
 
         learning_params = self._convert_from_grpc_to_learn_parameters(
             request.model_parameters)
@@ -52,12 +52,12 @@ class LearningGrpcService(LearningServiceServicer):
                                                 learning_params)
 
         if res == Result.ERROR:
-            return TrainResponse(TrainStatus.ERROR)
+            return TrainResponse(status=TrainStatus.ERROR)
 
-        return TrainResponse(TrainStatus.SUCCESS)
+        return TrainResponse(status=TrainStatus.SUCCESS)
 
     def _convert_from_grpc_to_learn_parameters(
-        params: ModelParameters
+        self, params: ModelParameters
     ) -> models.TimeSeries.TimeSeriesLearningParameters:
 
         cut_params = None

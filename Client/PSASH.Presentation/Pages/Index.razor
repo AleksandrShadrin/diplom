@@ -10,6 +10,7 @@
 @inject AppStateService AppStateService
 @inject IDatasetSender DatasetSender
 @inject ServerStateCheckerService ServerStateChecker
+@inject NavigationManager navManager
 
 <RadzenRow Gap="1rem" class="mt-4 container-fluid" JustifyContent="JustifyContent.Right" Style="min-height:400px;">
     @if (Dataset is not null)
@@ -44,14 +45,14 @@
     {
         <RadzenColumn Size="4" class="card bg-primary bg-opacity-50 p-4">
             <RadzenText Text="Отправленные наборы данных" class="text-white" />
-            <PSASH.Presentation.Components.NameList Names="DatasetNames" />
+            <PSASH.Presentation.Components.NameList Names="DatasetNames" SelectedNameChanged="@((name) => navManager.NavigateTo($"learning/{name}"))" />
         </RadzenColumn>
     }
     else
     {
         <RadzenColumn Size="4" class="card bg-secondary bg-opacity-50 p-4">
             <RadzenText Text="Соединение с сервером необнаруженно" class="text-white" />
-            <PSASH.Presentation.Components.NameList Names="DatasetNames" />
+            <PSASH.Presentation.Components.NameList Names="DatasetNames"/>
         </RadzenColumn>
     }
 </RadzenRow>
@@ -61,6 +62,7 @@
     Dataset Dataset { get; set; } = default;
     List<string> DatasetNames = new();
     CancellationTokenSource tokenSource = new();
+
 
     protected override async Task OnInitializedAsync()
     {

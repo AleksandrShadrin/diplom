@@ -51,13 +51,14 @@ class ClassificationModel(BaseModel):
     path: str
     id: str
 
-    def __init__(
-            self, predictor: BasePredictor, transformer: BaseTransformer,
-            time_series_learning_parameters: TimeSeriesLearningParameters
-    ) -> None:
+    def __init__(self, predictor: BasePredictor, transformer: BaseTransformer,
+                 time_series_learning_parameters: TimeSeriesLearningParameters,
+                 path: str, id: str) -> None:
         self.time_series_predictor = predictor
         self.time_series_transformer = transformer
         self.time_series_learning_parameters = time_series_learning_parameters
+        self.id = id
+        self.path = path
 
     def train(self, dataset: Dataset) -> Result:
         prepared_dataset = self._prepare_dataset(
@@ -67,7 +68,7 @@ class ClassificationModel(BaseModel):
 
         transformed_time_series = [
             self.time_series_transformer.transform(time_series)
-            for time_series in dataset.time_series
+            for time_series in prepared_dataset.time_series
         ]
 
         transformed_dataset = Dataset(time_series=transformed_time_series,

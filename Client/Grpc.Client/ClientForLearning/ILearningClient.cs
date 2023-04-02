@@ -5,7 +5,7 @@ namespace Grpc.Client.ClientForLearning
     public interface ILearningClient
     {
         Task<List<string>> GetModelsNamesForLearning();
-        Task<TrainStatus> TrainModel(string datasetName, Model model);
+        Task<TrainStatus> TrainModel(Model model);
         Task<List<TrainedModel>> GetTrainedModels();
 
     }
