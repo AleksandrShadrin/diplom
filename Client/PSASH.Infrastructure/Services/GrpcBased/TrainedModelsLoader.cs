@@ -21,8 +21,9 @@ namespace PSASH.Infrastructure.Services.GrpcBased
         {
             var models = await _learningClient.GetTrainedModels();
 
-            return models.Select(m => new TrainedModel(m.ModelName,
+            return models.Select(m => new TrainedModel(m.DatasetName,
                 Guid.Parse(m.Id),
+                m.ModelName,
                 new Core.ValueObjects.ModelStatistics(m.Statistics)))
                 .ToList();
         }

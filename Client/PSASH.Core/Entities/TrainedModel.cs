@@ -6,12 +6,14 @@ namespace PSASH.Core.Entities
     {
         public string DatasetName { get; init; } = String.Empty;
         public ModelStatistics ModelStatistics { get; init; }
+        public string ModelName { get; init; }
         public Guid Id { get; init; }
 
-        public TrainedModel(string name, Guid id, ModelStatistics modelStatistics)
+        public TrainedModel(string datasetName, Guid id, string modelName, ModelStatistics modelStatistics)
         {
             Id = id;
-            DatasetName = name;
+            DatasetName = datasetName;
+            ModelName = modelName;
             ModelStatistics = modelStatistics;
         }
     }

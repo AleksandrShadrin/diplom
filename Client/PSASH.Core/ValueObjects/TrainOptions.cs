@@ -17,6 +17,7 @@ namespace PSASH.Core.ValueObjects
                     "TimeSeries length can't be < 0.");
             }
 
+            TimeSeriesLength = timeSeriesLength;
             CutOption = cutOption;
             FillOption = fillOption;
         }

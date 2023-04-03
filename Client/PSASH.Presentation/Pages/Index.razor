@@ -17,9 +17,11 @@
     {
         if (serverState is true)
         {
-            <RadzenColumn Size="8" class="card bg-primary p-4 bg-opacity-75 justify-content-between">
-                <RadzenText Text=@($"Выбран набор данных: {Dataset.Name}") class="text-white" />
-                <RadzenButton class="align-self-center" Text="Отправить" Click="SendDataset"  ButtonStyle="ButtonStyle.Primary" Style="max-width:8rem;" />
+            <RadzenColumn Size="8" class="card bg-primary p-4 bg-opacity-75">
+                <RadzenText Text=@($"Выбран набор данных: {Dataset.Name}") class="text-white" TextStyle="TextStyle.DisplayH4" />
+                <RadzenText Text=@($"Число временных рядов: {Dataset.GetValues().Count()}") class="text-white" TextStyle="TextStyle.DisplayH4" />
+                <div class="my-auto"></div>
+                <RadzenButton class="align-self-center" Text="Отправить" Click="SendDataset"  ButtonStyle="ButtonStyle.Primary" Style="max-width:8rem;justify-self:end;" />
             </RadzenColumn>
         }
         else
@@ -43,7 +45,7 @@
     }
     @if (serverState is true)
     {
-        <RadzenColumn Size="4" class="card bg-primary bg-opacity-50 p-4">
+        <RadzenColumn Size="4" class="card rz-background-color-info bg-opacity-75 p-4">
             <RadzenText Text="Отправленные наборы данных" class="text-white" />
             <PSASH.Presentation.Components.NameList Names="DatasetNames" SelectedNameChanged="@((name) => navManager.NavigateTo($"learning/{name}"))" />
         </RadzenColumn>

@@ -39,7 +39,16 @@ else
 
                 @if (String.IsNullOrWhiteSpace(selectedModelName) is false)
                 {
-                    <RadzenButton Text="Обучить" Click="TrainModel" />
+                    @if (isTraining)
+                    {
+                        <RadzenButton Disabled=true>
+                            <span class="spinner-grow"></span>
+                            <span>Обучается...</span>
+                        </RadzenButton>
+                    }else
+                    {
+                        <RadzenButton Text="Обучить" Click="TrainModel" />
+                    }
                 }
 
             </RadzenCard>
@@ -67,7 +76,7 @@ else
                             </RadzenRadioButtonList>
                         </RadzenTabsItem>
                         <RadzenTabsItem Text="Длина временного ряда">
-                            <RadzenNumeric TValue="int" @bind-Value="TimeSeriesLength"/>
+                            <RadzenNumeric TValue="int" @bind-Value="TimeSeriesLength" Min="0" />
                         </RadzenTabsItem>
                     </Tabs>
                 </RadzenTabs>
@@ -87,6 +96,7 @@ else
 
     private string selectedModelName = string.Empty;
 
+    private bool isTraining = false;
     private bool serverState = false;
     private bool nameExist = false;
     private List<string> modelNames = new();
@@ -170,15 +180,40 @@ else
 
     private async Task TrainModel()
     {
+        isTraining = true;
+
+        StateHasChanged();
+
         var selectedModel = new UntrainedModel(selectedModelName, DatasetName);
 
-        var res = await learningService.TrainModel(selectedModel, options);
+        var task = learningService.TrainModel(selectedModel, options);
+
+        notificationService.Notify(OnStartModelTrain);
+
+        NotifyWhenTrainEnd(task);
+    }
+
+    private async Task NotifyWhenTrainEnd(Task<bool> train)
+    {
+        var res = await train;
+
+        isTraining = false;
+
+        StateHasChanged();
 
         if (res is true)
             notificationService.Notify(successOnModelTrained);
         else
             notificationService.Notify(errorOnModelTrained);
     }
+
+    private static NotificationMessage OnStartModelTrain = new NotificationMessage()
+        {
+            Severity = NotificationSeverity.Info,
+            Summary = "Начато: ",
+            Detail = "обучение модели.",
+            Duration = 4000
+        };
 
     private static NotificationMessage errorOnModelTrained = new NotificationMessage()
         {

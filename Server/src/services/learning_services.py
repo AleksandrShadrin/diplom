@@ -142,13 +142,20 @@ class LearningService(BaseLearningService):
         path = self._get_models_folder()
         ids = os.listdir(path)
 
-        info_list = [{'id': id} | self._load_info_of_model(id) for id in ids]
+        info_list = [{'model_id': id} | self._load_info_of_model(id) for id in ids]
 
         info_list = [
             info for info in info_list
             if 'predictor' in info.keys() and 'transformer' in info.keys()
             and 'dataset_name' in info.keys() and 'stats' in info.keys()
         ]
+        
+        for info in info_list:
+            predictor = info['predictor']
+            transformer = info['transformer']
+            
+            info['model_name'] = self.__predictor_transformer_delimeter \
+                .join([predictor, transformer])
 
         return info_list
 
@@ -159,7 +166,7 @@ class LearningService(BaseLearningService):
         classifier = None
 
         if name == 'RandomForestClassifier':
-            classifier = RandomForestClassifier(400)
+            classifier = RandomForestClassifier(400, n_jobs=6)
         elif name == 'MLPClassifier':
             classifier = MLPClassifier()
 

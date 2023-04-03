@@ -60,7 +60,7 @@ class MiniRocketTimeSeriesTransformer(BaseTransformer):
 
     def __init__(self, id: str, path: str):
         super().__init__(id, path)
-        self.transformer = MiniRocket()
+        self.transformer = MiniRocket(n_jobs=6)
 
     def transform(self, time_series: TimeSeries) -> TimeSeries:
         values = np.array(time_series.values)

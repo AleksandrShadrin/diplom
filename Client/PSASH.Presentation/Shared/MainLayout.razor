@@ -14,12 +14,14 @@
 <PageTitle>PSASH.Presentation</PageTitle>
 <RadzenDialog />
 <RadzenNotification />
+<RadzenTooltip />
 
-<RadzenLayout>
+<RadzenLayout Style="overflow:scroll;">
     <RadzenHeader>
         <RadzenStack AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
             <RadzenSidebarToggle Click="@(() => expandSidebar = !expandSidebar)" />
-            <RadzenLink Text="Home" Icon="home" Path="/" @onclick="() => selected = default" />
+            <RadzenLink Text="Главная" Icon="home" Path="/" @onclick="() => selected = default" />
+            <RadzenLink Text="Модели" Icon="build" Path="/inspect-models" @onclick="() => selected = default" />
             <ServerStatus class="ms-auto me-4" />
         </RadzenStack>
         
@@ -47,7 +49,7 @@
 
     private Task GoToTimeSeriesPage()
     {
-        navManger.NavigateTo($"/timeseries/{selected.Name.ToRouteString()}");
+        navManger.NavigateTo($"./timeseries/{selected.Name.ToRouteString()}");
 
         return Task.CompletedTask;
     }
