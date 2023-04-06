@@ -30,16 +30,16 @@ namespace Grpc.Client.ClientForSending
             return names.Names.ToList();
         }
 
-        public async Task<Response> SendDataset(IEnumerable<Models.DatasetShard> datasetShards)
+        public async Task<Response> SendDataset(IEnumerable<Models.DatasetShard> datasetShards, CancellationToken token)
         {
             var client = new DatasetSender.DatasetSenderClient(_channel);
 
-            using var call = client.SendDataset();
+            using var call = client.SendDataset(cancellationToken: token);
 
             var datasetShardsToSend = new List<Models.DatasetShard>();
 
             var task = default(Task);
-
+            
             foreach (var datasetShard in datasetShards)
             {
                 datasetShardsToSend.Add(datasetShard);
@@ -53,13 +53,16 @@ namespace Grpc.Client.ClientForSending
                     datasetShardsToSend = new();
                 }
             }
-
+            
             if (task is not null)
                 await task;
 
             await SendDatasetShards(datasetShardsToSend, call);
 
-            await call.RequestStream.CompleteAsync();
+            if (token.IsCancellationRequested is false)
+            {
+                await call.RequestStream.CompleteAsync();
+            }
 
             var res = await call;
 

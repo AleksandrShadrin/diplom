@@ -13,7 +13,7 @@ namespace PSASH.Presentation.Models
         }
 
         public static TimeSeriesName FromTimeSeriesInfo(TimeSeriesInfo timeSeriesInfo)
-            => new($"{timeSeriesInfo.Class}/{timeSeriesInfo.id}");
+            => new($"{timeSeriesInfo.Class}/{timeSeriesInfo.Id}");
 
         public static TimeSeriesName FromRouteString(string str)
         {

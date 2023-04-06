@@ -103,7 +103,6 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
                .Select(TryParseToDouble)
                .ToList();
 
-
             mono = new MonoTimeSeries(values, ExtractTimeSeriesInfoFromPath(input));
 
             return mono;

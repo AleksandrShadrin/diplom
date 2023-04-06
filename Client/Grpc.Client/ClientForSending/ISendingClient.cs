@@ -4,7 +4,7 @@ namespace Grpc.Client.ClientForSending
 {
     public interface ISendingClient
     {
-        Task<Response> SendDataset(IEnumerable<DatasetShard> datasetShards);
+        Task<Response> SendDataset(IEnumerable<DatasetShard> datasetShards, CancellationToken token);
         Task<List<string>> GetLoadedDatasetNames();
     }
 }

@@ -126,10 +126,14 @@ class LearningService(BaseLearningService):
 
         predictor = self._init_predictor(model_info['predictor'], model_id,
                                          path)
-        transformer = self._init_predictor(model_info['transformer'], model_id,
-                                           path)
+        transformer = self._init_transformer(model_info['transformer'],
+                                             model_id, path)
 
-        model = ClassificationModel(predictor, transformer, None)
+        model = ClassificationModel(predictor,
+                                    transformer,
+                                    None,
+                                    path=path,
+                                    id=model_id)
 
         if model.load() == Result.ERROR:
             return None
@@ -142,18 +146,20 @@ class LearningService(BaseLearningService):
         path = self._get_models_folder()
         ids = os.listdir(path)
 
-        info_list = [{'model_id': id} | self._load_info_of_model(id) for id in ids]
+        info_list = [{
+            'model_id': id
+        } | self._load_info_of_model(id) for id in ids]
 
         info_list = [
             info for info in info_list
             if 'predictor' in info.keys() and 'transformer' in info.keys()
             and 'dataset_name' in info.keys() and 'stats' in info.keys()
         ]
-        
+
         for info in info_list:
             predictor = info['predictor']
             transformer = info['transformer']
-            
+
             info['model_name'] = self.__predictor_transformer_delimeter \
                 .join([predictor, transformer])
 

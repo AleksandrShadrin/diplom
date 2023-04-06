@@ -1,0 +1,13 @@
+﻿@page "/predict"
+@using Grpc.Client.ClientForPrediction;
+
+@inject IPredictionClient predictionClient
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var ts = new Grpc.Client.Models.TimeSeriesDto(new List<double>(), "", "");
+        Console.WriteLine(await predictionClient.Predict("0a48bff5-d210-11ed-8255-001a7dda7115", ts));
+    }
+
+}

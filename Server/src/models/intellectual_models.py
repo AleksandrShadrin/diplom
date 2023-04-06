@@ -80,6 +80,7 @@ class ClassificationModel(BaseModel):
 
     def load(self, **kwargs) -> Result:
         res = self.time_series_predictor.load()
+
         if res == Result.ERROR:
             return res
 

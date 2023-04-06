@@ -1,5 +1,5 @@
 syntax = "proto3";
-package models;
+package prediction;
 
 service ModelsService {
   rpc GetModelPrediction(ModelPredictionRequest)
@@ -9,12 +9,12 @@ service ModelsService {
 }
 
 message Model { string uuid = 1; }
-message File {
-  bytes file = 1;
-  string file_ext = 2;
-}
+
 message ModelPredictionRequest {
-  File file = 1;
+  TimeSeriesValues time_series_values = 1;
   Model model = 2;
 }
+
+message TimeSeriesValues { repeated double values = 1; }
+
 message ModelPredictionResponse { string classified_as = 1; }

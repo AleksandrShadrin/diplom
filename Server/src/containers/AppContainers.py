@@ -8,6 +8,7 @@ from services.health import HealthService
 from services.learning_services import LearningService
 from services.learning_grpc import LearningGrpcService
 from server import Server
+from services.models_grpc import ModelsService
 
 
 class AppContainer(containers.DeclarativeContainer):
@@ -34,7 +35,11 @@ class AppContainer(containers.DeclarativeContainer):
         dataset_service=json_dataset_service,
         learning_service=learning_service)
 
+    models_grpc_service = providers.Singleton(
+        ModelsService, learning_service=learning_service)
+
     server = providers.Factory(Server,
                                sending_service=sending_service,
                                health_service=health_service,
-                               learning_grpc_service=learning_grpc_service)
+                               learning_grpc_service=learning_grpc_service,
+                               models_grpc_service=models_grpc_service)

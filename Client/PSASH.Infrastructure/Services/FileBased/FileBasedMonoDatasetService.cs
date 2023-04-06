@@ -135,7 +135,7 @@ namespace PSASH.Infrastructure.Services.FileBased
                 .FirstOrDefault());
 
             return fileExt is null ?
-                "" : Path.Combine(path, info.id + fileExt);
+                "" : Path.Combine(path, info.Id + fileExt);
         }
 
         private SameExt FilesExtensionsTheSame(string directory)

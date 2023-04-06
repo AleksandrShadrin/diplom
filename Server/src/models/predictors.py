@@ -53,21 +53,16 @@ class BasePredictor:
 
     def predict(self, time_series: TimeSeries) -> str:
         """Make prediction"""
-        time_series_with_encoded_label = TimeSeries(
-            values=time_series.values,
-            timeseries_class=self._label_encoder.transform(
-                time_series.timeseries_class),
-            id=time_series.id)
 
-        prediction = self._make_model_prediction(
-            time_series_with_encoded_label)
+        prediction = self._make_model_prediction(time_series)
 
-        return self._label_encoder.inverse_transform(prediction)
+        return self._label_encoder.inverse_transform([prediction])[0]
 
     def load(self, **kwargs) -> Result:
         """Load predictor parameters"""
         try:
-            with gzip.open(os.path.join(self.path, 'encoder.data'), 'rb') as f:
+            with gzip.open(os.path.join(self.path, self.id, 'encoder.data'),
+                           'rb') as f:
                 self._label_encoder = pickle.load(f)
         except Exception:
             return Result.ERROR
@@ -89,7 +84,7 @@ class BasePredictor:
 
         return self._save_model()
 
-    def _make_model_prediction(self) -> int:
+    def _make_model_prediction(self, time_series: TimeSeries) -> int:
         """model prediction"""
         raise NotImplementedError("BasePredictor don't imlement this method")
 
@@ -137,6 +132,10 @@ class SkLearnPredictor(BasePredictor):
         self.classifier = classifier
         super().__init__(id, path)
 
+    def _make_model_prediction(self, time_series: TimeSeries) -> int:
+
+        return self.classifier.predict([time_series.values])[0]
+
     def _save_model(self) -> Result:
         """Save RandomForestClassifier"""
         filename = os.path.join(self.path, self.id, 'classifier.gz')
@@ -158,8 +157,9 @@ class SkLearnPredictor(BasePredictor):
     def _load_model(self) -> Result:
         """Load RandomForestClassifier"""
         filename = os.path.join(self.path, self.id, 'classifier.gz')
+
         try:
-            self.classifier = joblib.load(self.classifier, filename)
+            self.classifier = joblib.load(filename)
         except Exception:
             return Result.ERROR
 
