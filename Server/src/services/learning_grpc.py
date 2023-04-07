@@ -48,8 +48,12 @@ class LearningGrpcService(LearningServiceServicer):
         learning_params = self._convert_from_grpc_to_learn_parameters(
             request.model_parameters)
 
+        print('start train')
+
         res = self.learning_service.train_model(request.model_name, dataset,
                                                 learning_params)
+
+        print('end train')
 
         if res == Result.ERROR:
             return TrainResponse(status=TrainStatus.ERROR)

@@ -6,26 +6,35 @@ namespace PSASH.Infrastructure.Services.GrpcBased
     public class TrainedModelsLoader : ITrainedModelsLoader
     {
         private readonly ILearningClient _learningClient;
+        private List<TrainedModel> _models = new();
 
         public TrainedModelsLoader(ILearningClient learningClient)
         {
             _learningClient = learningClient;
         }
 
-        public Task<TrainedModel> LoadModel(string guid)
+        public async Task<TrainedModel?> LoadModel(string guid)
         {
-            throw new NotImplementedException();
+            var model = _models.FirstOrDefault(m => m.Id.ToString() == guid);
+
+            if (model is null)
+                model = (await LoadModels())
+                    .FirstOrDefault(m => m.Id.ToString() == guid);
+
+            return model;
         }
 
         public async Task<List<TrainedModel>> LoadModels()
         {
             var models = await _learningClient.GetTrainedModels();
 
-            return models.Select(m => new TrainedModel(m.DatasetName,
+            _models = models.Select(m => new TrainedModel(m.DatasetName,
                 Guid.Parse(m.Id),
                 m.ModelName,
                 new Core.ValueObjects.ModelStatistics(m.Statistics)))
                 .ToList();
+
+            return _models.ToList();
         }
     }
 }

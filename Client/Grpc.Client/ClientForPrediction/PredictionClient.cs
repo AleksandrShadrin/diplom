@@ -1,5 +1,4 @@
-﻿using Google.Protobuf.Collections;
-using Grpc.Client.Models;
+﻿using Grpc.Client.Models;
 using Grpc.Net.Client;
 
 namespace Grpc.Client.ClientForPrediction

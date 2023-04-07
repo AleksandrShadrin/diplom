@@ -7,6 +7,7 @@
 
 @inject ILearningService learningService
 @inject ServerStateCheckerService serverChecker
+@inject NavigationManager navManager
 
 <RadzenStack class="pb-4" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
     <RadzenCard class="w-100 bg-primary bg-opacity-75">
@@ -17,12 +18,13 @@
 @if(serverState)
 {
     <RadzenCard class="p-4">
-        <RadzenDataList @ref=dataList Data="trainedModels" Style="height:400px;" class="overflow-auto" AllowVirtualization=true AllowPaging=false>
+        <RadzenDataList @ref=dataList Data="trainedModels" Style="height:500px;" class="overflow-auto" AllowVirtualization=true AllowPaging=false>
             <Template Context="model">
                 <RadzenTabs TabPosition="TabPosition.Left">
                     <Tabs>
                         <RadzenTabsItem Text="Общая информация">
-                            <RadzenText class="rz-color-warning-light">
+                            <RadzenText class="rz-color-warning-light text-decoration-underline" Style="cursor:pointer;" 
+                                @onclick="@(() => navManager.NavigateTo($"/predict?id={model.Id}"))">
                                 Id: @model.Id
                             </RadzenText>
                             <RadzenText class="rz-color-info">

@@ -9,6 +9,8 @@ from models.AppConfig import AppConfig
 from models.predictors import BasePredictor, SkLearnPredictor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import SGDClassifier
+from sklearn.svm import SVC, LinearSVC
 from itertools import product
 from appdirs import user_data_dir
 import orjson
@@ -85,6 +87,10 @@ class LearningService(BaseLearningService):
         (predictor_name, transformer_name) = model_name.split(
             self.__predictor_transformer_delimeter)
 
+        print(
+            f'predictor_name: {predictor_name}\ntransformer_name: {transformer_name}'
+        )
+
         predictor = self._init_predictor(predictor_name,
                                          id,
                                          path=self._get_models_folder())
@@ -100,9 +106,16 @@ class LearningService(BaseLearningService):
             path=self._get_models_folder(),
             id=id)
 
+        print('model initialized')
+
         res = intellectual_model.train(dataset)
+
+        print(f'train result: {res}')
+
         if res == Result.ERROR:
             return res
+
+        print('model trained')
 
         res = intellectual_model.save()
 
@@ -166,7 +179,10 @@ class LearningService(BaseLearningService):
         return info_list
 
     def _get_predictors_names(self) -> List[str]:
-        return ['RandomForestClassifier', 'MLPClassifier']
+        return [
+            'RandomForestClassifier', 'MLPClassifier', 'SGDClassifier', 'SVC',
+            'LinearSVC'
+        ]
 
     def _init_predictor(self, name: str, id: str, path: str) -> BasePredictor:
         classifier = None
@@ -175,6 +191,12 @@ class LearningService(BaseLearningService):
             classifier = RandomForestClassifier(400, n_jobs=6)
         elif name == 'MLPClassifier':
             classifier = MLPClassifier()
+        elif name == 'SGDClassifier':
+            classifier = SGDClassifier()
+        elif name == 'SVC':
+            classifier = SVC()
+        elif name == 'LinearSVC':
+            classifier = LinearSVC()
 
         return SkLearnPredictor(id=id, path=path, classifier=classifier)
 

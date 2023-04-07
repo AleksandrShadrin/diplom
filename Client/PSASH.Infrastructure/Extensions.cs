@@ -14,7 +14,7 @@ namespace PSASH.Infrastructure
         public static IServiceCollection RegisterInfrastructure(this IServiceCollection services)
         {
             services
-                .AddTransient<ITimeSeriesConverter<string, MonoTimeSeries>, FileBasedMonoTimeSeriesConverter>()
+                .AddTransient<IFileBasedMonoTimeSeriesConverter, FileBasedMonoTimeSeriesConverter>()
                 .AddSingleton<IFileBasedMonoDatasetService, FileBasedMonoDatasetService>()
                 .AddSingleton<IDatasetService<MonoTimeSeries>>(o
                     => o.GetRequiredService<IFileBasedMonoDatasetService>())
@@ -22,7 +22,8 @@ namespace PSASH.Infrastructure
                 .AddSingleton<IDatasetSender, MonoDatasetSender>()
                 .AddTransient<ITrainedModelsLoader, TrainedModelsLoader>()
                 .AddSingleton<IMonoTimeSeriesModelTrainer, MonoTimeSeriesModelTrainer>()
-                .AddSingleton<ILearningService, MonoTimeSeriesLearningService>();
+                .AddSingleton<ILearningService, MonoTimeSeriesLearningService>()
+                .AddSingleton<ITrainedModelService<MonoTimeSeries>, TrainedModelService>();
 
             return services;
         }

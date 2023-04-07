@@ -5,7 +5,7 @@
 @inject DialogService DialogService
 @inject IFileBasedMonoDatasetService filebasedMonoDatasetService
 
-<RadzenButton ButtonStyle="ButtonStyle.Primary" class="mb-4 mt-2" Text="Choose folder of dataset" Click="InvokeFolderSelectionDialog"></RadzenButton>
+<RadzenButton ButtonStyle="ButtonStyle.Primary" class="mb-4 mt-2" Text="Выберите папку" Click="InvokeFolderSelectionDialog"></RadzenButton>
 <RadzenTree class="w-100">
     @foreach (var timeSeriesClass in collectedByClasses.Keys)
     {

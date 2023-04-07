@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using PSASH.Core.Entities;
 using PSASH.Core.ValueObjects;
 using PSASH.Infrastructure.Exceptions;

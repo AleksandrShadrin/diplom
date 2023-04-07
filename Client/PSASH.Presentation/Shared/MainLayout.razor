@@ -49,7 +49,7 @@
 
     private Task GoToTimeSeriesPage()
     {
-        navManger.NavigateTo($"./timeseries/{selected.Name.ToRouteString()}");
+        navManger.NavigateTo($"/timeseries/{selected.Name.ToRouteString()}");
 
         return Task.CompletedTask;
     }

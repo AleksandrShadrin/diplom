@@ -7,7 +7,7 @@ import pickle
 import gzip
 from models.Result import Result
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
 import joblib
 import orjson
 import numpy as np
@@ -181,8 +181,19 @@ class SkLearnPredictor(BasePredictor):
         self.classifier.fit(X_train, np.ravel(y_train))
 
         self.__model_stats = {
-            'accuracy':
-            accuracy_score(np.ravel(y_test), self.classifier.predict(X_test))
+            'точность':
+            accuracy_score(np.ravel(y_test), self.classifier.predict(X_test)),
+            'сбалансированная точность':
+            balanced_accuracy_score(np.ravel(y_test),
+                                    self.classifier.predict(X_test)),
+            'F-score(macro)':
+            f1_score(np.ravel(y_test),
+                     self.classifier.predict(X_test),
+                     average='macro'),
+            'F-score(micro)':
+            f1_score(np.ravel(y_test),
+                     self.classifier.predict(X_test),
+                     average='micro')
         }
 
         return Result.OK

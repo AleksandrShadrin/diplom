@@ -1,6 +1,4 @@
-﻿using PSASH.Presentation.Models;
-
-namespace PSASH.Presentation.Services
+﻿namespace PSASH.Presentation.Services
 {
     public interface ITimeSeriesTransformer
     {

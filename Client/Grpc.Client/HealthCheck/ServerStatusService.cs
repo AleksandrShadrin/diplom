@@ -1,6 +1,4 @@
-﻿using System.Net.Sockets;
-
-namespace Grpc.Client.HealthCheck
+﻿namespace Grpc.Client.HealthCheck
 {
     public class ServerStatusService
     {
