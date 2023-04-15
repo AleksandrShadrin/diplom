@@ -64,6 +64,7 @@ class MiniRocketTimeSeriesTransformer(BaseTransformer):
 
     def transform(self, time_series: TimeSeries) -> TimeSeries:
         values = np.array(time_series.values)
+
         transformed_values = self.transformer.transform(values)
 
         timeSeries = TimeSeries(timeseries_class=time_series.timeseries_class,

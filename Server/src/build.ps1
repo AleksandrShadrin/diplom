@@ -1,0 +1,1 @@
+pyinstaller -F --add-data "config.json;." --hidden-import "dependency_injector.errors" .\main.py

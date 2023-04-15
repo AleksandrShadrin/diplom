@@ -19,7 +19,7 @@
 
 @if (serverState is true)
 {
-    <RadzenCard>
+    <RadzenCard Style="min-height:300px;">
         <RadzenTabs TabPosition="TabPosition.Right" RenderMode="TabRenderMode.Client">
             <Tabs>
                 <RadzenTabsItem Text="Общая информация">
@@ -44,8 +44,8 @@
                 <RadzenTabsItem Text="Сделать предсказание">
                     @if(timeSeries is not null)
                     {
-                        <PSASH.Presentation.Components.TimeSeriesPlot @bind-TimeSeriesDto=timeSeries />
-                        <div class="row justify-conten  t-around mt-4">
+                        <PSASH.Presentation.Components.TimeSeriesPlot TimeSeriesDto=timeSeries />
+                        <div class="row justify-content-around mt-4" >
                             <RadzenButton Style="width:12rem;" Text="Выберите файл" Click="OpenFileSelection" />
                             @if(predicted is false)
                             {
@@ -78,13 +78,9 @@
 
     private string prediction = String.Empty;
     private bool predicted = false;
-    private string selectedFile = String.Empty;
     private TimeSeriesDto timeSeries;
     private bool serverState = false;
-    private TrainedModel loadedModel = new("",
-        Guid.Empty,
-        "",
-        new(new()));
+    private TrainedModel loadedModel = null!;
 
     private readonly CancellationTokenSource cancellationTokenSource = new();
 
@@ -95,10 +91,12 @@
 
     private async Task Predict()
     {
+        predicted = true;
+
+        prediction = "Обрабатывается...";
+
         prediction = (await trainedModelsService.Predict(loadedModel, timeSeries))
             .Result;
-
-        predicted = true;
 
         await InvokeAsync(StateHasChanged);
     }
@@ -125,11 +123,12 @@
 
     private async Task OpenFileSelection()
     {
+        string selectedFile = String.Empty;
+
         await dialogService.OpenAsync("Выбор файла", ds =>
             @<PSASH.Presentation.Components.FileSelector @bind-SelectedFile=selectedFile OnConfirm=@(() => {
                 ds.Close();
-            })/>
-    );
+            })/>);
 
         if (String.IsNullOrEmpty(selectedFile) is false)
         {
@@ -137,7 +136,6 @@
             {
                 timeSeries = timeSeriesConverter.Convert(selectedFile);
                 var tsInfo = timeSeries.Name.ToTimeSeriesInfo();
-                tsInfo = tsInfo with { Class = "Неизвестно" };
                 timeSeries = timeSeries with { Name = TimeSeriesName.FromTimeSeriesInfo(tsInfo) };
                 notificationService.Notify(FileConvertedMessage);
                 predicted = false;
@@ -170,5 +168,4 @@
     {
         cancellationTokenSource.Cancel();
     }
-
 }

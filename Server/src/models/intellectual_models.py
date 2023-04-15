@@ -95,7 +95,7 @@ class ClassificationModel(BaseModel):
         ts = self._prepare_time_series(time_series,
                                        self.time_series_learning_parameters)
 
-        ts = self.time_series_transformer.transform(time_series)
+        ts = self.time_series_transformer.transform(ts)
         return self.time_series_predictor.predict(ts)
 
     def save(self, **kwargs):

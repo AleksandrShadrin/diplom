@@ -15,6 +15,7 @@
 <RadzenDialog />
 <RadzenNotification />
 <RadzenTooltip />
+<RadzenContextMenu />
 
 <RadzenLayout Style="overflow:scroll;">
     <RadzenHeader>
@@ -46,6 +47,11 @@
     private TimeSeriesDto selected = default;
 
     private List<TimeSeriesDto> timeSeries = new();
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("init");
+    }
 
     private Task GoToTimeSeriesPage()
     {

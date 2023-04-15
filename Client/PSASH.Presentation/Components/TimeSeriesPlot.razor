@@ -2,32 +2,47 @@
 @using PSASH.Presentation.Services;
 
 @inject ITimeSeriesTransformer TimeSeriesTransformer
-
-<RadzenRadioButtonList @bind-Value="TransformType">
-    <Items>
-        <RadzenRadioButtonListItem Text="FFT" Value="TransformationType.FFT" />
-        <RadzenRadioButtonListItem Text="Скользящая средняя (k = 3)" Value="TransformationType.AVERAGE_MOVING3" />
-        <RadzenRadioButtonListItem Text="Скользящая средняя (k = 5)" Value="TransformationType.AVERAGE_MOVING5" />
-        <RadzenRadioButtonListItem Text="SPLINE" Value="TransformationType.SPLINE" />
-        <RadzenRadioButtonListItem Text="Default" Value="TransformationType.DEFAULT"/>
-    </Items>
-</RadzenRadioButtonList>
+@inject ContextMenuService contextMenuService
 
 @if(values is not null)
 {
-    <RadzenChart>
-        <RadzenLineSeries Interpolation="@((TransformType is TransformationType.SPLINE) ? Interpolation.Spline : Interpolation.Line)" Data="@GetCuttedValues()" ValueProperty="Y" CategoryProperty="X" Title="Временной ряд" LineType="LineType.Solid">
-            <RadzenChartTooltipOptions Visible="@ToolTipIsVisible()" />
-            <RadzenMarkers MarkerType="MarkerType.None" />
-            <RadzenSeriesDataLabels Visible="@false" />
-            <RadzenLegend Position="LegendPosition.Bottom" />
-        </RadzenLineSeries>
-        <RadzenCategoryAxis Padding="20" />
-        <RadzenValueAxis Formatter="RoundValue">
-            <RadzenGridLines Visible="true" />
-            <RadzenAxisTitle Text="Значения" />
-        </RadzenValueAxis>
-    </RadzenChart>
+    @if(TransformType is TransformationType.FFT)
+    {
+        <RadzenChart ContextMenu="ShowContextMenu">
+            <RadzenLineSeries Data="@GetCuttedValues()" ValueProperty="Y" CategoryProperty="X" Title="Преобразованный ряд" LineType="LineType.Solid">
+                <RadzenChartTooltipOptions Visible="@ToolTipIsVisible()" />
+                <RadzenMarkers MarkerType="MarkerType.None" />
+                <RadzenSeriesDataLabels Visible="@false" />
+                <RadzenLegend Position="LegendPosition.Bottom" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" />
+            <RadzenValueAxis Formatter="RoundValue">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Значения" />
+            </RadzenValueAxis>
+        </RadzenChart>
+    } else
+    {
+        <RadzenChart ContextMenu="ShowContextMenu">
+            <RadzenLineSeries Data="@GetCuttedValuesOfSource()" ValueProperty="Y" CategoryProperty="X" Title="Временной ряд" LineType="LineType.Solid">
+                <RadzenChartTooltipOptions Visible="@ToolTipIsVisible()" />
+                <RadzenMarkers MarkerType="MarkerType.None" />
+                <RadzenSeriesDataLabels Visible="@false" />
+                <RadzenLegend Position="LegendPosition.Bottom" />
+            </RadzenLineSeries>
+            <RadzenLineSeries Data="@GetCuttedValues()" ValueProperty="Y" CategoryProperty="X" Title="Сглаженный временной ряд" LineType="LineType.Solid">
+                <RadzenChartTooltipOptions Visible="@ToolTipIsVisible()" />
+                <RadzenMarkers MarkerType="MarkerType.None" />
+                <RadzenSeriesDataLabels Visible="@false" />
+                <RadzenLegend Position="LegendPosition.Bottom" />
+            </RadzenLineSeries>
+            <RadzenCategoryAxis Padding="20" />
+            <RadzenValueAxis Formatter="RoundValue">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Значения" />
+            </RadzenValueAxis>
+        </RadzenChart>
+    }
 } else
 {
     <div class="h-100 d-flex justify-content-center align-items-center">
@@ -46,6 +61,12 @@
         set
         {
             timeSeriesDto = value;
+
+            sourceValues = timeSeriesDto
+                .Values
+                .Select((y, idx) => new Point(idx, y))
+                .ToArray();
+
             UpdateValues();
         }
     }
@@ -54,7 +75,7 @@
     public EventCallback<TimeSeriesDto> TimeSeriesDtoChanged { get; set; }
 
     [Parameter]
-    public int MaxPoints { get; set; } = 800;
+    public int MaxPoints { get; set; } = 350;
 
     [Parameter]
     public TransformationType TransformType { 
@@ -66,12 +87,14 @@
         }
     }
 
-    private TransformationType transformType = TransformationType.DEFAULT;
+    private TransformationType transformType = TransformationType.AVERAGE_MOVING;
 
+    private int k = 3;
     private int shift = 0;
     private int maxShift = 0;
 
-    private List<Point> values;
+    private Point[] values;
+    private Point[] sourceValues;
 
     private TimeSeriesDto timeSeriesDto = default;
 
@@ -82,24 +105,32 @@
         return Double.Round(res, 8).ToString();
     }
 
+    private IEnumerable<Point> GetCuttedValuesOfSource()
+    {
+        var start = shift * MaxPoints;
+        var end = Math.Min((shift + 1) * MaxPoints, sourceValues.Length);
+
+        return sourceValues[start..end];
+    }
+
     private IEnumerable<Point> GetCuttedValues()
-        => values
-                .Skip(shift * MaxPoints)
-                .Take(MaxPoints)
-                .ToList();
+    {
+        var start = shift * MaxPoints;
+        var end = Math.Min((shift + 1) * MaxPoints, values.Length);
+
+        return values[start..end];
+    }
 
     private async Task UpdateValues()
     {
         values = default;
 
-        await Task.Delay(200);
+        values = GetValues().ToArray();
 
-        values = GetValues().ToList();
-        
-        maxShift = values.Count / MaxPoints;
+        maxShift = values.Length / MaxPoints;
 
         if (shift > maxShift)
-            shift = maxShift - 1;
+            shift = Math.Max(maxShift - 1, 0);
         StateHasChanged();
     }
 
@@ -123,23 +154,60 @@
             TransformationType.FFT => TimeSeriesTransformer
                 .FastFourierTransform(values)
                 .ToList(),
-            TransformationType.AVERAGE_MOVING3 => TimeSeriesTransformer
-                .AverageMoving(values, 3)
-                .ToList(),
-            TransformationType.AVERAGE_MOVING5 => TimeSeriesTransformer
-                .AverageMoving(values, 5)
+            TransformationType.AVERAGE_MOVING => TimeSeriesTransformer
+                .AverageMoving(values, k)
                 .ToList(),
             _ => values
         };
+
+    private void ShowContextMenu(MouseEventArgs args)
+    {
+        contextMenuService.Open(args, ds =>
+            @<RadzenMenu Click="OnContextMenuClick">
+                    <RadzenMenuItem Value=TransformationType.AVERAGE_MOVING Text="Скользящая средняя">
+                        <div class="row px-4 justify-content-end align-content-center">
+                            <RadzenIcon @onclick=OnKSelect Icon="done" class="ms-2 me-auto align-self-center" Style="cursor:pointer;"></RadzenIcon>
+                <RadzenNumeric @onkeypress=@OnSelectKKeyPress class="w-75" Min="1" Max="100" @bind-Value="k"></RadzenNumeric>
+                        </div>
+                    </RadzenMenuItem>
+                    <RadzenMenuItem Text="Преобразование Фурье" Value="TransformationType.FFT">
+                    </RadzenMenuItem>
+        </RadzenMenu>
+    );
+    }
+
+    private void OnSelectKKeyPress(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            TransformType = TransformationType.AVERAGE_MOVING;
+            contextMenuService.Close();
+        }
+    }
+
+    private void OnKSelect(MouseEventArgs args)
+    {
+        TransformType = TransformationType.AVERAGE_MOVING;
+        contextMenuService.Close();
+    }
+
+    private void OnContextMenuClick(MenuItemEventArgs args)
+    {
+        var type = (TransformationType)args.Value;
+
+        if (type == TransformationType.FFT)
+        {
+            TransformType = type;
+            contextMenuService.Close();
+        }
+    }
 
     private record struct Point(double X, double Y);
 
     public enum TransformationType
     {
         FFT,
-        DEFAULT,
-        AVERAGE_MOVING3,
-        AVERAGE_MOVING5,
+        AVERAGE_MOVING,
         SPLINE
     }
 }

@@ -17,9 +17,21 @@ namespace Grpc.Client.HealthCheck
             var client = new Health.Health.HealthClient(_channel);
             try
             {
-                var result = await client.CheckAsync(new());
+                var taskWithResponse =  Task.Run(async () 
+                    => await client.CheckAsync(new()));
+                var taskWithTimeLimit = Task.Run(async () =>
+                {
+                    await Task.Delay(1500);
+                    var resp = new Health.HealthCheckResponse();
+                    resp.Status = Health.ServingStatus.NotServing;
 
-                if (result.Status == Health.ServingStatus.Serving)
+                    return resp;
+                });
+
+                var completedTask = await Task.WhenAny(new[] {taskWithResponse, taskWithTimeLimit});
+                var res = await completedTask;
+
+                if (res.Status == Health.ServingStatus.Serving)
                     return true;
             }
             catch (RpcException) { }

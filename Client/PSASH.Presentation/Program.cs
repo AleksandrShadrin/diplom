@@ -3,6 +3,7 @@ using ElectronNET.API.Entities;
 using PSASH.Infrastructure;
 using PSASH.Presentation.Services;
 using Radzen;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.RegisterInfrastructure();
 builder.Services.AddScoped<TooltipService>();
+builder.Services.AddScoped<ContextMenuService>();
 builder.Services.AddScoped<DialogService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<TooltipService>();
@@ -35,8 +37,20 @@ if (HybridSupport.IsElectronActive)
             Height = 720,
         });
 
-        window.OnClosed += () => {
+
+        var process = await RunServer();
+
+        window.OnClosed += async () => {
             Electron.App.Quit();
+        }; 
+
+        Electron.App.BeforeQuit += async (_) =>
+        {
+            foreach (var prcs in Process.GetProcessesByName(process.ProcessName))
+            {
+                prcs.Kill();
+                await prcs.WaitForExitAsync();
+            }
         };
     });
 }
@@ -60,3 +74,15 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+
+Task<Process> RunServer()
+{
+    var startInfo = new ProcessStartInfo();
+    startInfo.CreateNoWindow = true;
+    startInfo.UseShellExecute = false;
+    startInfo.FileName = "./main.exe";
+    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+    var process = Process.Start(startInfo);
+    return Task.FromResult(process);
+}

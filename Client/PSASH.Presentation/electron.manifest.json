@@ -21,6 +21,11 @@
         "from": "./bin",
         "to": "bin",
         "filter": [ "**/*" ]
+      },
+      {
+        "from": "../../../../../Server/src/dist",
+        "to": "bin",
+        "filter": [ "**/*" ]
       }
     ],
     "files": [

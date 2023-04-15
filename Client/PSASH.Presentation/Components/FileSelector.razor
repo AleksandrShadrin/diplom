@@ -23,12 +23,12 @@
             return;
 
         SelectedFile = path;
-        await SelectedFileChanged.InvokeAsync(path);
     }
 
     private void ConfirmSelection()
     {
         NotificationService.Notify(OnConfirmMessage());
+        SelectedFileChanged.InvokeAsync(SelectedFile);
         OnConfirm();
     }
 
