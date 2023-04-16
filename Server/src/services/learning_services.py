@@ -154,7 +154,7 @@ class LearningService(BaseLearningService):
         return model
 
     def get_trained_models(
-            self) -> List[Dict[str, Union[str, Dict[str, float]]]]:
+            self) -> List[Dict[str, Union[str, Dict[str, str]]]]:
 
         path = self._get_models_folder()
         ids = os.listdir(path)
@@ -172,6 +172,8 @@ class LearningService(BaseLearningService):
         for info in info_list:
             predictor = info['predictor']
             transformer = info['transformer']
+
+            info['stats'] = {k: str(v) for k, v in info['stats'].items()}
 
             info['model_name'] = self.__predictor_transformer_delimeter \
                 .join([predictor, transformer])

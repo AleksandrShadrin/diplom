@@ -149,6 +149,7 @@
         }
 
         sendingDataset = false;
+        await InvokeAsync(UpdateDatasetNames);
         await InvokeAsync(StateHasChanged);
     }
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from typing import Any, Dict
 from models.TimeSeries import TimeSeries
@@ -18,10 +19,12 @@ class BasePredictor:
     id: str
     path: str
     _label_encoder: LabelEncoder
+    _model_stats: Dict[str, float]
     """
     Parameters: 
     id: str - id of dataset
     path: str - path to application models storage
+    _model_stats: Dict[str, float] - stats of trained model
     """
 
     def __init__(self, id: str, path: str) -> None:
@@ -81,6 +84,14 @@ class BasePredictor:
                 pickle.dump(self._label_encoder, f)
         except OSError:
             return Result.ERROR
+        
+        if self._model_stats is not None:
+            self._model_stats['модель обучена'] = datetime.now()
+            with open(os.path.join(self.path, self.id, 'stats.json'),
+                      'wb') as fw:
+                fw.write(
+                    orjson.dumps(self._model_stats,
+                                 option=orjson.OPT_SERIALIZE_NUMPY))
 
         return self._save_model()
 
@@ -145,13 +156,6 @@ class SkLearnPredictor(BasePredictor):
         except Exception:
             return Result.ERROR
 
-        if self.__model_stats is not None:
-            with open(os.path.join(self.path, self.id, 'stats.json'),
-                      'wb') as fw:
-                fw.write(
-                    orjson.dumps(self.__model_stats,
-                                 option=orjson.OPT_SERIALIZE_NUMPY))
-
         return Result.OK
 
     def _load_model(self) -> Result:
@@ -164,7 +168,7 @@ class SkLearnPredictor(BasePredictor):
             return Result.ERROR
 
         with open(os.path.join(self.path, self.id, 'stats.json'), 'rb') as fr:
-            self.__model_stats = orjson.loads(fr.read())
+            self._model_stats = orjson.loads(fr.read())
 
         return Result.OK
 
@@ -180,7 +184,7 @@ class SkLearnPredictor(BasePredictor):
 
         self.classifier.fit(X_train, np.ravel(y_train))
 
-        self.__model_stats = {
+        self._model_stats = {
             'точность':
             accuracy_score(np.ravel(y_test), self.classifier.predict(X_test)),
             'сбалансированная точность':
@@ -199,4 +203,4 @@ class SkLearnPredictor(BasePredictor):
         return Result.OK
 
     def get_stats(self) -> Dict[str, float]:
-        return self.__model_stats
+        return self._model_stats

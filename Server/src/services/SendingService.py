@@ -6,6 +6,8 @@ from models.TimeSeries import TimeSeries
 from services.BaseDatasetService import BaseDatasetService
 from typing import List, Iterable
 from models.SendResponse import SendResponse, Status
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 import proto_generated.SendingService_pb2
 
 
@@ -39,9 +41,15 @@ class SendingService(DatasetSenderServicer):
             await asyncio.sleep(500 / 1000)
 
             dataset = Dataset(time_series_list, dataset_name)
-
             self.dataset_service.set_dataset(dataset)
-            result = self.dataset_service.save_dataset(rewrite=update_dataset)
+
+            executor = ThreadPoolExecutor()
+            loop = asyncio.get_event_loop()
+
+            save_dataset = partial(self.dataset_service.save_dataset,
+                                   rewrite=update_dataset)
+
+            result = await loop.run_in_executor(executor, save_dataset)
 
             if result == Result.ERROR:
                 return SendResponse(

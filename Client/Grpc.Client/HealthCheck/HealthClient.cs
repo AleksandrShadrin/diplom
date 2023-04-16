@@ -19,6 +19,7 @@ namespace Grpc.Client.HealthCheck
             {
                 var taskWithResponse =  Task.Run(async () 
                     => await client.CheckAsync(new()));
+
                 var taskWithTimeLimit = Task.Run(async () =>
                 {
                     await Task.Delay(1500);

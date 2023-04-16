@@ -21,10 +21,13 @@ class Server:
         self.learning_service = learning_grpc_service
         self.models_service = models_grpc_service
 
-        self.server = grpc.aio.server(options=[
-            ('grpc.max_send_message_length', 12 * 1024 * 1024 * 8),
-            ('grpc.max_receive_message_length', 12 * 1024 * 1024 * 8),
-        ])
+        self.server = grpc.aio.server(maximum_concurrent_rpcs=2,
+                                      options=[
+                                          ('grpc.max_send_message_length',
+                                           12 * 1024 * 1024 * 8),
+                                          ('grpc.max_receive_message_length',
+                                           12 * 1024 * 1024 * 8),
+                                      ])
         self._cleanup_coroutines = []
 
     def launch(self) -> None:

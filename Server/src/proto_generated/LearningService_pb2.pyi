@@ -54,17 +54,17 @@ class TrainedModel(_message.Message):
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
-        value: float
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[float] = ...) -> None: ...
+        value: str
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
     DATASET_NAME_FIELD_NUMBER: _ClassVar[int]
     MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
     STATISTICS_FIELD_NUMBER: _ClassVar[int]
     UUID_FIELD_NUMBER: _ClassVar[int]
     dataset_name: str
     model_name: str
-    statistics: _containers.ScalarMap[str, float]
+    statistics: _containers.ScalarMap[str, str]
     uuid: str
-    def __init__(self, dataset_name: _Optional[str] = ..., model_name: _Optional[str] = ..., uuid: _Optional[str] = ..., statistics: _Optional[_Mapping[str, float]] = ...) -> None: ...
+    def __init__(self, dataset_name: _Optional[str] = ..., model_name: _Optional[str] = ..., uuid: _Optional[str] = ..., statistics: _Optional[_Mapping[str, str]] = ...) -> None: ...
 
 class TrainedModels(_message.Message):
     __slots__ = ["models"]

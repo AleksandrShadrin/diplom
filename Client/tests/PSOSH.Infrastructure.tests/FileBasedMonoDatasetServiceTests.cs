@@ -14,7 +14,7 @@ namespace PSOSH.Infrastructure.tests
         public void Set_Of_not_Existing_Path_Should_Throw_PathDontExistException()
         {
             // Arrange
-            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+            var converter = Substitute.For<IFileBasedMonoTimeSeriesConverter>();
 
             var path = Path
                 .Combine(Path.GetTempPath(),
@@ -46,7 +46,7 @@ namespace PSOSH.Infrastructure.tests
 
             CreateDirectoryWithPathAndFilesExtension(tempPath, "ext", 10, 10);
 
-            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+            var converter = Substitute.For<IFileBasedMonoTimeSeriesConverter>();
 
             var fileBasedMonoDatasetService =
                 new FileBasedMonoDatasetService(converter);
@@ -78,7 +78,7 @@ namespace PSOSH.Infrastructure.tests
                 count,
                 count);
 
-            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+            var converter = Substitute.For<IFileBasedMonoTimeSeriesConverter>();
 
             var fileBasedMonoDatasetService =
                 new FileBasedMonoDatasetService(converter);
@@ -116,7 +116,7 @@ namespace PSOSH.Infrastructure.tests
 
             File.Create(Path.Combine(tempPath, "1", "1" + ".incorrect"));
 
-            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+            var converter = Substitute.For<IFileBasedMonoTimeSeriesConverter>();
 
             var fileBasedMonoDatasetService =
                 new FileBasedMonoDatasetService(converter);
@@ -134,7 +134,7 @@ namespace PSOSH.Infrastructure.tests
         public void When_Dataset_Not_Loaded_LoadTimeSeries_Should_Throw_DatasetNotLoadedException()
         {
             // Arrange
-            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+            var converter = Substitute.For<IFileBasedMonoTimeSeriesConverter>();
 
             var fileBasedMonoDatasetService =
                 new FileBasedMonoDatasetService(converter);
@@ -165,7 +165,7 @@ namespace PSOSH.Infrastructure.tests
 
             var timeSeriesInfo = new TimeSeriesInfo("1", "1");
 
-            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+            var converter = Substitute.For<IFileBasedMonoTimeSeriesConverter>();
 
             converter
                 .Convert(Arg.Any<string>())
@@ -203,7 +203,7 @@ namespace PSOSH.Infrastructure.tests
 
             var timeSeriesInfo = new TimeSeriesInfo("1", "11");
 
-            var converter = Substitute.For<ITimeSeriesConverter<string, MonoTimeSeries>>();
+            var converter = Substitute.For<IFileBasedMonoTimeSeriesConverter>();
 
             var fileBasedMonoDatasetService =
                 new FileBasedMonoDatasetService(converter);
