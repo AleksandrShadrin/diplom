@@ -57,7 +57,7 @@ else
             <RadzenCard class="w-100 mx-auto h-100" Style="min-height:400px;">
                 <RadzenTabs TabPosition="TabPosition.Left" RenderMode="TabRenderMode.Client">
                     <Tabs>
-                        <RadzenTabsItem Text="Заполнение">
+                        <RadzenTabsItem Text="Заполнение значений">
                             <RadzenRadioButtonList @bind-Value="FillOption" Orientation="Orientation.Vertical">
                                 <Items>
                                     <RadzenRadioButtonListItem Text="добавить значения по бокам" Value="FillOption.FILL_BOTH" />
@@ -66,12 +66,12 @@ else
                                 </Items>
                             </RadzenRadioButtonList>
                         </RadzenTabsItem>
-                        <RadzenTabsItem Text="Обрезание">
+                        <RadzenTabsItem Text="Сокращение значений">
                             <RadzenRadioButtonList @bind-Value="CutOption" Orientation="Orientation.Vertical">
                                 <Items>
-                                    <RadzenRadioButtonListItem Text="обрезать значения по бокам" Value="CutOption.CUT_BOTH" />
-                                    <RadzenRadioButtonListItem Text="обрезать значения слева" Value="CutOption.CUT_LEFT" />
-                                    <RadzenRadioButtonListItem Text="обрезать значения справа" Value="CutOption.CUT_RIGHT" />
+                                    <RadzenRadioButtonListItem Text="убрать значения по бокам" Value="CutOption.CUT_BOTH" />
+                                    <RadzenRadioButtonListItem Text="убрать значения слева" Value="CutOption.CUT_LEFT" />
+                                    <RadzenRadioButtonListItem Text="убрать значения справа" Value="CutOption.CUT_RIGHT" />
                                 </Items>
                             </RadzenRadioButtonList>
                         </RadzenTabsItem>

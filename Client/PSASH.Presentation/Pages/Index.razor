@@ -122,6 +122,7 @@
         {
             notificationService.Notify(datasetSendingMessage);
             sendingDataset = true;
+            await InvokeAsync(StateHasChanged);
 
             await task;
 

@@ -4,9 +4,11 @@ from models.Dataset import Dataset
 from models.Result import Result
 from models.intellectual_models import BaseModel, ClassificationModel
 from models.TimeSeries import TimeSeriesLearningParameters
-from models.transformers import BaseTransformer, MiniRocketTimeSeriesTransformer
+from models.transformers import BaseTransformer, MiniRocketTimeSeriesTransformer, \
+    Catch22TimeSeriesTransformer, \
+    NoneTimeSeriesTransformer
 from models.AppConfig import AppConfig
-from models.predictors import BasePredictor, SkLearnPredictor
+from models.predictors import BasePredictor, SkLearnPredictor, CNNModelM1Predictor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import SGDClassifier
@@ -183,7 +185,7 @@ class LearningService(BaseLearningService):
     def _get_predictors_names(self) -> List[str]:
         return [
             'RandomForestClassifier', 'MLPClassifier', 'SGDClassifier', 'SVC',
-            'LinearSVC'
+            'LinearSVC', 'CNNModelM1'
         ]
 
     def _init_predictor(self, name: str, id: str, path: str) -> BasePredictor:
@@ -199,17 +201,23 @@ class LearningService(BaseLearningService):
             classifier = SVC()
         elif name == 'LinearSVC':
             classifier = LinearSVC()
+        elif name == 'CNNModelM1':
+            return CNNModelM1Predictor(id=id, path=path)
 
         return SkLearnPredictor(id=id, path=path, classifier=classifier)
 
     def _get_transformers_names(self) -> List[str]:
-        return ['MiniRocket']
+        return ['MiniRocket', 'Catch22', 'None']
 
     def _init_transformer(self, name: str, id: str,
                           path: str) -> BaseTransformer:
         """Initialize transformer by it's name and id"""
         if name == 'MiniRocket':
             return MiniRocketTimeSeriesTransformer(id=id, path=path)
+        if name == 'Catch22':
+            return Catch22TimeSeriesTransformer(id=id, path=path)
+        if name == 'None':
+            return NoneTimeSeriesTransformer(id=id, path=path)
         else:
             return None
 
