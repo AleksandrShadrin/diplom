@@ -1,3 +1,6 @@
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 from proto_generated.LearningService_pb2 import FillParameters, TrainResponse
 from proto_generated.LearningService_pb2 import TrainStatus
 from proto_generated.LearningService_pb2_grpc import LearningServiceServicer
@@ -41,17 +44,29 @@ class LearningGrpcService(LearningServiceServicer):
 
         return TrainedModels(models=trained_models)
 
-    def TrainModel(self, request: Model, context):
+    async def TrainModel(self, request: Model, context):
 
-        dataset = self.dataset_service.load_dataset(name=request.dataset_name)
+        # dataset = self.dataset_service.load_dataset(name=request.dataset_name)
+        loop = asyncio.get_event_loop()
+        executor = ThreadPoolExecutor()
+
+        get_dataset = partial(self.dataset_service.load_dataset,
+                              name=request.dataset_name)
+
+        dataset = await loop.run_in_executor(executor, get_dataset)
 
         learning_params = self._convert_from_grpc_to_learn_parameters(
             request.model_parameters)
 
         print('start train')
 
-        res = self.learning_service.train_model(request.model_name, dataset,
-                                                learning_params)
+        # res = self.learning_service.train_model(request.model_name, dataset,
+        #                                         learning_params)
+
+        train = partial(self.learning_service.train_model, request.model_name,
+                        dataset, learning_params)
+
+        res = await loop.run_in_executor(executor, train)
 
         print('end train')
 
