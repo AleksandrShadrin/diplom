@@ -8,7 +8,8 @@ from models.transformers import BaseTransformer, MiniRocketTimeSeriesTransformer
     Catch22TimeSeriesTransformer, \
     NoneTimeSeriesTransformer
 from models.AppConfig import AppConfig
-from models.predictors import BasePredictor, SkLearnPredictor, CNNModelM1Predictor
+from models.predictors import BasePredictor, SkLearnPredictor, CNNModelM1Predictor, \
+    CNNModelM2Predictor
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import SGDClassifier
@@ -185,7 +186,7 @@ class LearningService(BaseLearningService):
     def _get_predictors_names(self) -> List[str]:
         return [
             'RandomForestClassifier', 'MLPClassifier', 'SGDClassifier', 'SVC',
-            'LinearSVC', 'CNNModelM1'
+            'LinearSVC', 'CNNModelM1', 'CNNModelM2'
         ]
 
     def _init_predictor(self, name: str, id: str, path: str) -> BasePredictor:
@@ -203,6 +204,8 @@ class LearningService(BaseLearningService):
             classifier = LinearSVC()
         elif name == 'CNNModelM1':
             return CNNModelM1Predictor(id=id, path=path)
+        elif name == 'CNNModelM2':
+            return CNNModelM2Predictor(id=id, path=path)
 
         return SkLearnPredictor(id=id, path=path, classifier=classifier)
 

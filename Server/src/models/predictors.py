@@ -215,23 +215,25 @@ class SkLearnPredictor(BasePredictor):
         return self._model_stats
 
 
-class CNNModelM1Predictor(BasePredictor):
-    """CNN Predictor"""
+class KerasModel(BasePredictor):
+    """Base keras Predictor"""
     _train_stats: Dict[str, float]
     classifier: Model
+    epochs: int
 
-    def __init__(self, id: str, path: str) -> None:
+    def __init__(self, id: str, path: str, epochs: int = 200) -> None:
         """Initialize of CNNModelM1Predictor
         params: 
         id: str - id of predictor
         path: str - path to folder of application
         """
         super().__init__(id, path)
+        self.epochs = epochs
 
     def _make_model_prediction(self, time_series: TimeSeries) -> int:
 
-        values = self._reshape_timeseries(time_series)
-        return np.argmax(self.classifier.predict([values]), axis=1)[0]
+        values = self._reshape_timeseries(time_series).reshape(1, -1, 1)
+        return np.argmax(self.classifier.predict(values), axis=1)[0]
 
     def _save_model(self) -> Result:
         """Save RandomForestClassifier"""
@@ -285,7 +287,7 @@ class CNNModelM1Predictor(BasePredictor):
         X_train, X_test, y_train, y_test = train_test_split(values,
                                                             ts_labels,
                                                             test_size=0.15)
-        print(np.shape(np.array(X_train)))
+
         y_train = np.ravel(y_train)
         y_test = np.ravel(y_test)
         X_train = np.array(X_train)
@@ -295,10 +297,10 @@ class CNNModelM1Predictor(BasePredictor):
             X_train,
             y_train,
             batch_size=32,
-            epochs=200,
+            epochs=self.epochs,
             callbacks=callbacks,
             validation_split=0.1,
-            verbose=10,
+            verbose=0,
         )
 
         classified_values = np.argmax(self.classifier.predict(X_test), axis=1)
@@ -325,6 +327,21 @@ class CNNModelM1Predictor(BasePredictor):
         values = values.reshape((values.shape[0], 1))
 
         return values
+
+    def _compile_model(self, input_shape, labels_len: int) -> Model:
+        raise NotImplementedError("should be implemented")
+
+
+class CNNModelM1Predictor(KerasModel):
+    """CNN Predictor Model1"""
+
+    def __init__(self, id: str, path: str) -> None:
+        """Initialize of CNNModelM1Predictor
+        params: 
+        id: str - id of predictor
+        path: str - path to folder of application
+        """
+        super().__init__(id, path)
 
     def _compile_model(self, input_shape, labels_len: int) -> Model:
 
@@ -354,6 +371,63 @@ class CNNModelM1Predictor(BasePredictor):
 
         output_layer = keras.layers.Dense(labels_len,
                                           activation="softmax")(gap)
+
+        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+
+        model.compile(
+            optimizer="adam",
+            loss="sparse_categorical_crossentropy",
+            metrics=["sparse_categorical_accuracy"],
+        )
+
+        return model
+
+
+class CNNModelM2Predictor(KerasModel):
+    """CNN Predictor Model2"""
+
+    def __init__(self, id: str, path: str) -> None:
+        """Initialize of CNNModelM1Predictor
+        params: 
+        id: str - id of predictor
+        path: str - path to folder of application
+        """
+        super().__init__(id, path)
+
+    def _compile_model(self, input_shape, labels_len: int) -> Model:
+
+        input_layer = keras.layers.Input(input_shape)
+
+        conv1 = keras.layers.Conv1D(filters=64, kernel_size=3,
+                                    padding="same")(input_layer)
+        conv1 = keras.layers.BatchNormalization()(conv1)
+        conv1 = keras.layers.ReLU()(conv1)
+
+        conv1 = keras.layers.Conv1D(filters=64, kernel_size=3,
+                                    padding="same")(input_layer)
+        conv1 = keras.layers.BatchNormalization()(conv1)
+        conv1 = keras.layers.ReLU()(conv1)
+
+        conv2 = keras.layers.Conv1D(filters=64, kernel_size=3,
+                                    padding="same")(conv1)
+        conv2 = keras.layers.BatchNormalization()(conv2)
+        conv2 = keras.layers.ReLU()(conv2)
+
+        conv3 = keras.layers.Conv1D(filters=64, kernel_size=3,
+                                    padding="same")(conv2)
+        conv3 = keras.layers.BatchNormalization()(conv3)
+        conv3 = keras.layers.ReLU()(conv3)
+
+        gap = keras.layers.GlobalAveragePooling1D()(conv3)
+
+        flat = keras.layers.Flatten()(gap)
+
+        dense1 = keras.layers.Dense(256)(flat)
+
+        dense2 = keras.layers.Dense(128)(dense1)
+
+        output_layer = keras.layers.Dense(labels_len,
+                                          activation="softmax")(dense2)
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
