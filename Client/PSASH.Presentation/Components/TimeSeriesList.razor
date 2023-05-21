@@ -95,7 +95,7 @@
         {
             await UpdateTimeSeries();
         }
-        catch (Exception ex) {}
+        catch (Exception) {}
     }
 
     private Dictionary<string, List<TimeSeriesDto>> collectedByClasses = new();
@@ -104,7 +104,7 @@
     private async Task InvokeFolderSelectionDialog()
     {
         await DialogService
-            .OpenAsync("Folder Selection", ds =>
+            .OpenAsync("Выбор папки", ds =>
             @<FolderSelector OnConfirm="(async ()=> {
                             ds.Close();
                             await UpdateTimeSeries();

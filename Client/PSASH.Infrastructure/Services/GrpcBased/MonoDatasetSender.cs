@@ -47,7 +47,7 @@ namespace PSASH.Infrastructure.Services.GrpcBased
                     Result.Ok(res.Message) :
                     Result.Error(res.Message);
             }
-            catch (Grpc.Core.RpcException ex)
+            catch (Grpc.Core.RpcException)
             {
                 throw savedInfrastructureExceptions;
             }

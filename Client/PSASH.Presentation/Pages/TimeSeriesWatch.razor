@@ -17,10 +17,10 @@
 @if (timeSeriesDto is not null)
 {
     <RadzenRow Gap="1rem" class="mt-4 container-fluid" Style="min-height:400px;" >
-        <RadzenColumn class="card bg-white p-4" Size="8">
+        <RadzenColumn class="card bg-white p-4" Size="12" SizeLG="8">
             <PSASH.Presentation.Components.TimeSeriesPlot @bind-TimeSeriesDto="timeSeriesDto" />
         </RadzenColumn>
-        <RadzenColumn class="card bg-light p-4" Size="4">
+        <RadzenColumn class="card bg-light p-4" Size="12" SizeLG="4">
             <PSASH.Presentation.Components.TimeSeriesDtoStats TimeSeriesDto="timeSeriesDto" />
         </RadzenColumn>
     </RadzenRow>
