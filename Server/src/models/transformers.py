@@ -4,7 +4,6 @@ from models.Dataset import Dataset
 import pandas as pd
 from sktime.datatypes._panel._convert import from_2d_array_to_nested
 from sktime.transformations.panel.rocket import MiniRocket
-from sktime.transformations.panel.catch22 import Catch22
 import numpy as np
 import pycatch22
 
@@ -62,7 +61,7 @@ class MiniRocketTimeSeriesTransformer(BaseTransformer):
 
     def __init__(self, id: str, path: str):
         super().__init__(id, path)
-        self.transformer = MiniRocket(n_jobs=6)
+        self.transformer = MiniRocket()
 
     def transform(self, time_series: TimeSeries) -> TimeSeries:
         values = np.array(time_series.values)
