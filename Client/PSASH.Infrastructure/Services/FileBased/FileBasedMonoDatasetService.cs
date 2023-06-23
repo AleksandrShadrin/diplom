@@ -9,9 +9,9 @@ namespace PSASH.Infrastructure.Services.FileBased
     {
         private string _path = String.Empty;
         private Dataset? _dataset;
-        private readonly ITimeSeriesConverter<string, MonoTimeSeries> _timeSeriesConverter;
+        private readonly IFileBasedMonoTimeSeriesConverter _timeSeriesConverter;
 
-        public FileBasedMonoDatasetService(ITimeSeriesConverter<string, MonoTimeSeries> timeSeriesConverter)
+        public FileBasedMonoDatasetService(IFileBasedMonoTimeSeriesConverter timeSeriesConverter)
         {
             _timeSeriesConverter = timeSeriesConverter is null ?
                 throw new ArgumentNullException(
@@ -135,7 +135,7 @@ namespace PSASH.Infrastructure.Services.FileBased
                 .FirstOrDefault());
 
             return fileExt is null ?
-                "" : Path.Combine(path, info.id + fileExt);
+                "" : Path.Combine(path, info.Id + fileExt);
         }
 
         private SameExt FilesExtensionsTheSame(string directory)

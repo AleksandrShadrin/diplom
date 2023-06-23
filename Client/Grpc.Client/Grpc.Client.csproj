@@ -18,6 +18,8 @@
   </ItemGroup>
     <ItemGroup>
 		<Protobuf Include="..\..\Protobuf\SendingService.proto" GrpcServices="Client" />
-	<Protobuf Include="..\..\Protobuf\Health.proto" GrpcServices="Client" />
+	    <Protobuf Include="..\..\Protobuf\Health.proto" GrpcServices="Client" />
+	    <Protobuf Include="..\..\Protobuf\LearningService.proto" GrpcServices="Client" />
+	    <Protobuf Include="..\..\Protobuf\ModelsService.proto" GrpcServices="Client" />
 	</ItemGroup>
 </Project>

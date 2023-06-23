@@ -1,0 +1,171 @@
+﻿@page "/predict"
+@using Grpc.Client.ClientForPrediction;
+@using PSASH.Application.Services;
+@using PSASH.Core.Entities;
+@using PSASH.Infrastructure.Exceptions;
+@using PSASH.Infrastructure.Services;
+@using PSASH.Infrastructure.Services.FileBased.Converter;
+@using PSASH.Presentation.Models;
+
+@implements IDisposable
+
+@inject ITrainedModelService<MonoTimeSeries> trainedModelsService
+@inject ITrainedModelsLoader modelsLoader
+@inject NotificationService notificationService
+@inject DialogService dialogService
+@inject ServerStateCheckerService ServerStateChecker
+@inject NavigationManager navManager
+@inject IFileBasedMonoTimeSeriesConverter timeSeriesConverter
+
+@if (serverState is true)
+{
+    <RadzenCard Style="min-height:300px;">
+        <RadzenTabs TabPosition="TabPosition.Right" RenderMode="TabRenderMode.Client">
+            <Tabs>
+                <RadzenTabsItem Text="Общая информация">
+                    <RadzenText class="rz-color-warning-light">
+                        Id: @loadedModel.Id
+                    </RadzenText>
+                    <RadzenText class="rz-color-info">
+                        Набор данных: @loadedModel.DatasetName
+                    </RadzenText>
+                    <RadzenText class="rz-color-info">
+                        Модель: @loadedModel.ModelName
+                    </RadzenText>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Статистика">
+                    @foreach (var kvp in loadedModel.ModelStatistics.Stats)
+                    {
+                        <RadzenText class="rz-color-info">
+                            @kvp.Key: @kvp.Value
+                        </RadzenText>
+                    }
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Сделать предсказание">
+                    @if(timeSeries is not null)
+                    {
+                        <PSASH.Presentation.Components.TimeSeriesPlot TimeSeriesDto=timeSeries />
+                        <div class="row justify-content-around mt-4" >
+                            <RadzenButton Style="width:12rem;" Text="Выберите файл" Click="OpenFileSelection" />
+                            @if(predicted is false)
+                            {
+                            <RadzenButton Style="width:12rem;" Text="Предсказать" ButtonStyle="ButtonStyle.Light" Click="Predict" />
+                            }
+                            else
+                            {
+                                <hr class="my-4" />
+                                <RadzenText Text=@($"Временной ряд классифицирован как: {prediction}") TextStyle="TextStyle.DisplayH4"/>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="height:300px;" class="w-100"></div>
+                        <div class="row justify-content-around mt-4">
+                            <RadzenButton Style="width:12rem;" Text="Выберите файл" Click="OpenFileSelection" />
+                        </div>
+                    }
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </RadzenCard>
+}
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string Id { get; set; } = String.Empty;
+
+    private string prediction = String.Empty;
+    private bool predicted = false;
+    private TimeSeriesDto timeSeries;
+    private bool serverState = false;
+    private TrainedModel loadedModel = null!;
+
+    private readonly CancellationTokenSource cancellationTokenSource = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ServerStateChecker.StartAsync(500, ServerStateChanged, cancellationTokenSource.Token);
+    }
+
+    private async Task Predict()
+    {
+        predicted = true;
+
+        prediction = "Обрабатывается...";
+
+        prediction = (await trainedModelsService.Predict(loadedModel, timeSeries))
+            .Result;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateTrainedModel()
+    {
+        loadedModel = await modelsLoader.LoadModel(Id);
+
+        if (loadedModel is null)
+            navManager.NavigateTo("/");
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ServerStateChanged(bool state)
+    {
+        serverState = state;
+
+        if (state is true)
+            InvokeAsync(UpdateTrainedModel);
+        else
+            InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenFileSelection()
+    {
+        string selectedFile = String.Empty;
+
+        await dialogService.OpenAsync("Выбор файла", ds =>
+            @<PSASH.Presentation.Components.FileSelector @bind-SelectedFile=selectedFile OnConfirm=@(() => {
+                ds.Close();
+            })/>);
+
+        if (String.IsNullOrEmpty(selectedFile) is false)
+        {
+            try
+            {
+                timeSeries = timeSeriesConverter.Convert(selectedFile);
+                var tsInfo = timeSeries.Name.ToTimeSeriesInfo();
+                timeSeries = timeSeries with { Name = TimeSeriesName.FromTimeSeriesInfo(tsInfo) };
+                notificationService.Notify(FileConvertedMessage);
+                predicted = false;
+                await InvokeAsync(StateHasChanged);
+            } catch(InfrastructureException ex)
+            {
+                notificationService.Notify(FailedToConvertMessage(ex.Message));
+            }
+        }
+    }
+
+    private static NotificationMessage FailedToConvertMessage(string message)
+        => new()
+        {
+            Duration = 3000,
+            Severity = NotificationSeverity.Error,
+            Detail = message,
+            Summary = "Ошибка"
+        };
+
+    private static NotificationMessage FileConvertedMessage = new()
+            {
+                Duration = 3000,
+                Severity = NotificationSeverity.Info,
+                Detail = "Файл успешно сконвертирован",
+                Summary = "Успех"
+            };
+
+    public void Dispose()
+    {
+        cancellationTokenSource.Cancel();
+    }
+}

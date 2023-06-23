@@ -1,4 +1,4 @@
 ﻿namespace PSASH.Core.ValueObjects
 {
-    public record TimeSeriesInfo(string Class, string id);
+    public record TimeSeriesInfo(string Class, string Id);
 }

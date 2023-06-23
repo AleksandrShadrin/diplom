@@ -5,7 +5,7 @@
 
 <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Start">
     <RadzenText Text=@($"Class: {TimeSeriesDto.Name.ToTimeSeriesInfo().Class}") TextStyle="TextStyle.H5" />
-    <RadzenText Text=@($"Id: {TimeSeriesDto.Name.ToTimeSeriesInfo().id}") TextStyle="TextStyle.H5" />
+    <RadzenText Text=@($"Id: {TimeSeriesDto.Name.ToTimeSeriesInfo().Id}") TextStyle="TextStyle.H5" />
     @foreach (var stat in GetStats())
     {
         <RadzenText Text=@(stat) TextStyle="TextStyle.H5"/>
@@ -24,5 +24,4 @@
         yield return $"Min: {infoService.GetMin(TimeSeriesDto):f5}";
         yield return $"Max: {infoService.GetMax(TimeSeriesDto):f5}";
     }
-
 }

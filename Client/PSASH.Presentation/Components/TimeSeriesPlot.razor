@@ -1,52 +1,56 @@
 @using PSASH.Presentation.Models;
 @using PSASH.Presentation.Services;
+@using Plotly.Blazor;
+@using Plotly.Blazor.LayoutLib;
+@using Plotly.Blazor.Traces;
 
 @inject ITimeSeriesTransformer TimeSeriesTransformer
+@inject ContextMenuService contextMenuService
 
-<RadzenRadioButtonList @bind-Value="TransformType">
-    <Items>
-        <RadzenRadioButtonListItem Text="FFT" Value="TransformationType.FFT" />
-        <RadzenRadioButtonListItem Text="Скользящая средняя (k = 3)" Value="TransformationType.AVERAGE_MOVING3" />
-        <RadzenRadioButtonListItem Text="Скользящая средняя (k = 5)" Value="TransformationType.AVERAGE_MOVING5" />
-        <RadzenRadioButtonListItem Text="SPLINE" Value="TransformationType.SPLINE" />
-        <RadzenRadioButtonListItem Text="Default" Value="TransformationType.DEFAULT"/>
-    </Items>
-</RadzenRadioButtonList>
-
-@if(values is not null)
-{
-    <RadzenChart>
-        <RadzenLineSeries Interpolation="@((TransformType is TransformationType.SPLINE) ? Interpolation.Spline : Interpolation.Line)" Data="@GetCuttedValues()" ValueProperty="Y" CategoryProperty="X" Title="Временной ряд" LineType="LineType.Solid">
-            <RadzenChartTooltipOptions Visible="@ToolTipIsVisible()" />
-            <RadzenMarkers MarkerType="MarkerType.None" />
-            <RadzenSeriesDataLabels Visible="@false" />
-            <RadzenLegend Position="LegendPosition.Bottom" />
-        </RadzenLineSeries>
-        <RadzenCategoryAxis Padding="20" />
-        <RadzenValueAxis Formatter="RoundValue">
-            <RadzenGridLines Visible="true" />
-            <RadzenAxisTitle Text="Значения" />
-        </RadzenValueAxis>
-    </RadzenChart>
-} else
-{
-    <div class="h-100 d-flex justify-content-center align-items-center">
-        <div class="spinner-border" role="status">
+<div class="overflow-scroll" style="min-height:400px;" @oncontextmenu=ShowContextMenu @oncontextmenu:preventDefault="true">
+    @if (sourceWithSmooth.Count > 0)
+    {
+        @if(TransformType is TransformationType.FFT)
+        {
+            <Plotly.Blazor.PlotlyChart @bind-Data="fftData" @bind-Config="config" @ref="chart" />
+        }
+        else 
+        {
+            <Plotly.Blazor.PlotlyChart @bind-Data="sourceWithSmooth" @bind-Config="config" @ref="chart" />
+        }
+    }
+    else
+    {
+        <div class="h-100 d-flex justify-content-center align-items-center">
+            <div class="spinner-border" role="status">
+            </div>
         </div>
-    </div>
-}
-@if (TimeSeriesDto.Values.Count > MaxPoints)
-{
-    <input type="range" class="form-range" min="0" max="@maxShift" step="1" @bind="shift" @bind:event="oninput" />
-}
-
+    }
+</div>
 @code {
     [Parameter]
-    public TimeSeriesDto TimeSeriesDto { get => timeSeriesDto;
+    public TimeSeriesDto TimeSeriesDto
+    {
+        get => timeSeriesDto;
         set
         {
             timeSeriesDto = value;
-            UpdateValues();
+
+            var sourceValues = timeSeriesDto
+            .Values
+            .Select((y, idx) => new Point(idx, y))
+            .ToArray();
+
+            sourceWithSmooth.Clear();
+            sourceWithSmooth.Add(new Scatter
+                {
+                    Name = "Исходные данные",
+                    Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines,
+                    Y = sourceValues.Select(x => (object)x.Y).ToList(),
+                    X = sourceValues.Select(x => (object)x.X).ToList(),
+                });
+
+            InvokeAsync(UpdateValues);
         }
     }
 
@@ -54,25 +58,35 @@
     public EventCallback<TimeSeriesDto> TimeSeriesDtoChanged { get; set; }
 
     [Parameter]
-    public int MaxPoints { get; set; } = 800;
-
-    [Parameter]
-    public TransformationType TransformType { 
-        get => transformType; 
+    public TransformationType TransformType
+    {
+        get => transformType;
         set
         {
             transformType = value;
-            UpdateValues();
+            InvokeAsync(UpdateValues);
         }
     }
 
-    private TransformationType transformType = TransformationType.DEFAULT;
+    private Layout layout = new() 
+    { 
+        Width = 800,
+        Height = 600,
+    };
+    private Config config = new()
+    {
+        Responsive = true,
+        DisplayModeBar = Plotly.Blazor.ConfigLib.DisplayModeBarEnum.True
+    };
 
-    private int shift = 0;
-    private int maxShift = 0;
+    private IList<ITrace> sourceWithSmooth = new List<ITrace>();
+    private IList<ITrace> fftData = new List<ITrace>();
 
-    private List<Point> values;
+    PlotlyChart chart;
 
+    private TransformationType transformType = TransformationType.AVERAGE_MOVING;
+
+    private int k = 3;
     private TimeSeriesDto timeSeriesDto = default;
 
     private string RoundValue(object value)
@@ -82,64 +96,97 @@
         return Double.Round(res, 8).ToString();
     }
 
-    private IEnumerable<Point> GetCuttedValues()
-        => values
-                .Skip(shift * MaxPoints)
-                .Take(MaxPoints)
-                .ToList();
-
     private async Task UpdateValues()
     {
-        values = default;
+        var values = GetValues().ToArray();
 
-        await Task.Delay(200);
+        var updatedTs = new Scatter
+                {
+                    Name = "Сглаженные данные",
+                    Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines,
+                    Y = values.Select(x => (object)x.Y).ToList(),
+                    X = values.Select(x => (object)x.X).ToList(),
+                };
 
-        values = GetValues().ToList();
-        
-        maxShift = values.Count / MaxPoints;
+        if (TransformType is TransformationType.FFT)
+        {
+            fftData.Clear();
+            updatedTs.Name = "Преобразованные данные";
+            fftData.Add(updatedTs);
+        }
+        else
+        {
+            if (sourceWithSmooth.Count > 1)
+                sourceWithSmooth[1] = updatedTs;
+            else
+                sourceWithSmooth.Add(updatedTs);
+        }
 
-        if (shift > maxShift)
-            shift = maxShift - 1;
-        StateHasChanged();
+        await chart.Update();
     }
-
-    private bool ToolTipIsVisible()
-        => TimeSeriesDto is not null && TimeSeriesDto.Values.Count <= 1000;
 
     private IEnumerable<Point> GetValues()
     {
         if (TimeSeriesDto is not null)
         {
             return TransformValues(TimeSeriesDto.Values)
-                .Select((y, idx) => new Point(idx, y));
+            .Select((y, idx) => new Point(idx, y));
         }
 
         return Enumerable.Empty<Point>();
     }
 
     private List<double> TransformValues(List<double> values)
-        => TransformType switch
+    => TransformType switch
+    {
+        TransformationType.FFT => TimeSeriesTransformer
+            .FastFourierTransform(values)
+            .ToList(),
+        TransformationType.AVERAGE_MOVING => TimeSeriesTransformer
+            .AverageMoving(values, k)
+            .ToList(),
+        _ => values
+    };
+
+    private void ShowContextMenu(MouseEventArgs args)
+    {
+        contextMenuService.Open(args, ds =>
+    @<RadzenMenu Click="OnContextMenuClick">
+        <RadzenMenuItem Value=TransformationType.AVERAGE_MOVING Text="Скользящая средняя">
+            <div class="row px-4 justify-content-end align-content-center">
+                <RadzenIcon @onclick=OnKSelect Icon="done" class="ms-2 me-auto align-self-center" Style="cursor:pointer;"></RadzenIcon>
+                <RadzenNumeric class="w-75" Min="1" Max="100" @bind-Value="k"></RadzenNumeric>
+            </div>
+        </RadzenMenuItem>
+        <RadzenMenuItem Text="Преобразование Фурье" Value="TransformationType.FFT">
+        </RadzenMenuItem>
+        </RadzenMenu>
+    );
+    }
+
+    private void OnKSelect(MouseEventArgs args)
+    {
+        TransformType = TransformationType.AVERAGE_MOVING;
+        contextMenuService.Close();
+    }
+
+    private void OnContextMenuClick(MenuItemEventArgs args)
+    {
+        var type = (TransformationType)args.Value;
+
+        if (type == TransformationType.FFT)
         {
-            TransformationType.FFT => TimeSeriesTransformer
-                .FastFourierTransform(values)
-                .ToList(),
-            TransformationType.AVERAGE_MOVING3 => TimeSeriesTransformer
-                .AverageMoving(values, 3)
-                .ToList(),
-            TransformationType.AVERAGE_MOVING5 => TimeSeriesTransformer
-                .AverageMoving(values, 5)
-                .ToList(),
-            _ => values
-        };
+            TransformType = type;
+            contextMenuService.Close();
+        }
+    }
 
     private record struct Point(double X, double Y);
 
     public enum TransformationType
     {
         FFT,
-        DEFAULT,
-        AVERAGE_MOVING3,
-        AVERAGE_MOVING5,
+        AVERAGE_MOVING,
         SPLINE
     }
 }

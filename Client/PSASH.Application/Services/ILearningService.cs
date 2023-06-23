@@ -9,9 +9,9 @@ namespace PSASH.Application.Services
         /// обучение модели
         /// </summary>
         /// <param name="model">имя модели</param>
-        /// <param name="options">параметры обучени¤</param>
-        /// <returns>¬озвращает обученную модель</returns>
-        Task<TrainedModel> TrainModel(UntrainedModel model, TrainOptions options);
+        /// <param name="options">параметры обучения</param>
+        /// <returns>Возвращает результат обучения true или false</returns>
+        Task<bool> TrainModel(UntrainedModel model, TrainOptions options);
 
         /// <summary>
         /// получает обученные модели
@@ -20,7 +20,7 @@ namespace PSASH.Application.Services
         Task<List<TrainedModel>> GetTrainedModels();
 
         /// <summary>
-        /// ¬озвращает существующие модели для обучения
+        /// Возвращает существующие модели для обучения
         /// </summary>
         /// <returns>возвращает список необученных моделей</returns>
         Task<List<UntrainedModel>> GetUntrainedModels();

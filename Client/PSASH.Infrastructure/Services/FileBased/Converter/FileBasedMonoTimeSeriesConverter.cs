@@ -8,14 +8,14 @@ using System.Data;
 namespace PSASH.Infrastructure.Services.FileBased.Converter
 {
     public class FileBasedMonoTimeSeriesConverter :
-        ITimeSeriesConverter<string, MonoTimeSeries>
+        IFileBasedMonoTimeSeriesConverter
     {
         /// <summary>
         /// Конвертирует путь к временному ряду в одиночный временной ряд
         /// </summary>
         /// <param name="input">Путь к файлу</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <exception cref="FileExtensionNotSupportedException"></exception>
         public MonoTimeSeries Convert(string input)
         {
             string ext = Path.GetExtension(input);
@@ -25,7 +25,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             }
             if (ext == ".csv")
             {
-                return CSVProcessig(input);
+                return CSVProcessing(input);
             }
             else if (ext == ".wav")
             {
@@ -35,7 +35,6 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             {
                 throw new FileExtensionNotSupportedException();
             }
-
         }
 
         private TimeSeriesInfo ExtractTimeSeriesInfoFromPath(string path)
@@ -86,7 +85,7 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
                 throw new CantConvertToMonoFileException("");
             }
         }
-        private MonoTimeSeries CSVProcessig(string input)
+        private MonoTimeSeries CSVProcessing(string input)
         {
 
             MonoTimeSeries mono;
@@ -103,7 +102,6 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
                .Select(TryParseToDouble)
                .ToList();
 
-
             mono = new MonoTimeSeries(values, ExtractTimeSeriesInfoFromPath(input));
 
             return mono;
@@ -115,11 +113,5 @@ namespace PSASH.Infrastructure.Services.FileBased.Converter
             WAV,
             NOT_AVAILABLE
         }
-
-        private AvailableExtensions ConvertToAvailableExtension(string ext)
-            => ext switch
-            {
-                _ => AvailableExtensions.NOT_AVAILABLE,
-            };
     }
 }

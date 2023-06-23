@@ -1,18 +1,19 @@
 ﻿@using Grpc.Client;
+@using Grpc.Client.HealthCheck;
 
 @implements IDisposable
 
 @inject ServerStatusService StatusService
 @inject AppStateService AppState
 @inject ServerStateCheckerService ServerStateChecker
-
+@inject TooltipService tooltipService
 @if (status is true)
 {
-    <RadzenBadge @attributes="@InputAttributes" BadgeStyle="BadgeStyle.Success" Text="online" />
+    <RadzenBadge @attributes="@InputAttributes" BadgeStyle="BadgeStyle.Success" Text="online" MouseEnter="@((args) => ShowTooltip(args))" />
 }
 else
 {
-    <RadzenBadge @attributes="@InputAttributes" BadgeStyle="BadgeStyle.Warning" Text="offline" />
+    <RadzenBadge @attributes="@InputAttributes" BadgeStyle="BadgeStyle.Warning" Text="offline" MouseEnter="@((args) => ShowTooltip(args))" />
 }
 
 @code {
@@ -34,6 +35,16 @@ else
     {
         status = state;
         InvokeAsync(StateHasChanged);
+    }
+
+    private void ShowTooltip(ElementReference elementReference)
+    {
+        tooltipService.Open(elementReference, $"Сервер для обучения моделей {(status ? "активен" : "выключен")}", new TooltipOptions()
+        {
+            Duration = 2000,
+            Position = TooltipPosition.Left,
+            Style = $"{(status is false ? "background-color: var(--rz-warning-light)" : "background-color: var(--rz-info)")}"
+        });
     }
 
     public void Dispose()

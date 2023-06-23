@@ -14,12 +14,15 @@
 <PageTitle>PSASH.Presentation</PageTitle>
 <RadzenDialog />
 <RadzenNotification />
+<RadzenTooltip />
+<RadzenContextMenu />
 
-<RadzenLayout>
+<RadzenLayout Style="overflow:scroll;">
     <RadzenHeader>
         <RadzenStack AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal">
             <RadzenSidebarToggle Click="@(() => expandSidebar = !expandSidebar)" />
-            <RadzenLink Text="Home" Icon="home" Path="/" @onclick="() => selected = default" />
+            <RadzenLink Text="Главная" Icon="home" Path="/" @onclick="() => selected = default" />
+            <RadzenLink Text="Модели" Icon="build" Path="/inspect-models" @onclick="() => selected = default" />
             <ServerStatus class="ms-auto me-4" />
         </RadzenStack>
         
@@ -44,6 +47,11 @@
     private TimeSeriesDto selected = default;
 
     private List<TimeSeriesDto> timeSeries = new();
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("init");
+    }
 
     private Task GoToTimeSeriesPage()
     {

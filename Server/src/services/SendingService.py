@@ -1,3 +1,4 @@
+import asyncio
 from proto_generated.SendingService_pb2_grpc import DatasetSenderServicer
 from models.Result import Result
 from models.Dataset import Dataset
@@ -5,6 +6,8 @@ from models.TimeSeries import TimeSeries
 from services.BaseDatasetService import BaseDatasetService
 from typing import List, Iterable
 from models.SendResponse import SendResponse, Status
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 import proto_generated.SendingService_pb2
 
 
@@ -18,37 +21,52 @@ class SendingService(DatasetSenderServicer):
             self, request_iterator: Iterable[
                 proto_generated.SendingService_pb2.TimeSeries],
             context) -> proto_generated.SendingService_pb2.SendResponse:
+        try:
+            time_series_list: List[TimeSeries] = []
+            dataset_name: str = ''
+            update_dataset: bool = False
 
-        time_series_list: List[TimeSeries] = []
-        dataset_name: str = ''
-        update_dataset: bool = False
+            async for dshard in request_iterator:
+                if dshard.HasField('dataset_name'):
+                    dataset_name = dshard.dataset_name
+                if dshard.HasField('update_dataset'):
+                    update_dataset = dshard.update_dataset
 
-        async for dshard in request_iterator:
-            if dshard.HasField('dataset_name'):
-                dataset_name = dshard.dataset_name
-            if dshard.HasField('update_dataset'):
-                update_dataset = dshard.update_dataset
+                time_series = TimeSeries(
+                    [value for value in dshard.time_series.values],
+                    dshard.time_series.class_name, dshard.time_series.id)
 
-            time_series = TimeSeries(
-                [value for value in dshard.time_series.values],
-                dshard.time_series.class_name, dshard.time_series.id)
+                time_series_list.append(time_series)
 
-            time_series_list.append(time_series)
+            await asyncio.sleep(500 / 1000)
 
-        dataset = Dataset(time_series_list, dataset_name)
+            dataset = Dataset(time_series_list, dataset_name)
+            self.dataset_service.set_dataset(dataset)
 
-        self.dataset_service.set_dataset(dataset)
-        result = self.dataset_service.save_dataset(rewrite=update_dataset)
+            executor = ThreadPoolExecutor()
+            loop = asyncio.get_event_loop()
 
-        if result == Result.ERROR:
+            save_dataset = partial(self.dataset_service.save_dataset,
+                                   rewrite=update_dataset)
+
+            result = await loop.run_in_executor(executor, save_dataset)
+
+            if result == Result.ERROR:
+                return SendResponse(
+                    message="something went wrong, try again",
+                    status=Status.ERROR).convert_to_grpc_send_response()
+
+            elif result == Result.OK:
+                return SendResponse(
+                    message="dataset successfully loaded",
+                    status=Status.OK).convert_to_grpc_send_response()
+
+        except asyncio.CancelledError:
+            print('canceled')
+
             return SendResponse(
                 message="something went wrong, try again",
                 status=Status.ERROR).convert_to_grpc_send_response()
-
-        elif result == Result.OK:
-            return SendResponse(
-                message="dataset successfully loaded",
-                status=Status.OK).convert_to_grpc_send_response()
 
     def GetLoadedDatasetNames(self, request, context):
         return proto_generated.SendingService_pb2.DatasetNames(

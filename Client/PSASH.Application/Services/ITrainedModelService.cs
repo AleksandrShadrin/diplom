@@ -6,6 +6,6 @@ namespace PSASH.Application.Services
     public interface ITrainedModelService<T>
         where T : BaseTimeSeries
     {
-        ModelPredictedResult Predict(TrainedModel model, T timeSeries);
+        Task<ModelPredictedResult> Predict(TrainedModel model, T timeSeries);
     }
 }

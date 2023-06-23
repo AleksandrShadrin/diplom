@@ -5,7 +5,7 @@
 @inject DialogService DialogService
 @inject IFileBasedMonoDatasetService filebasedMonoDatasetService
 
-<RadzenButton ButtonStyle="ButtonStyle.Primary" class="mb-4 mt-2" Text="Choose folder of dataset" Click="InvokeFolderSelectionDialog"></RadzenButton>
+<RadzenButton ButtonStyle="ButtonStyle.Primary" class="mb-4 mt-2" Text="Выберите папку" Click="InvokeFolderSelectionDialog"></RadzenButton>
 <RadzenTree class="w-100">
     @foreach (var timeSeriesClass in collectedByClasses.Keys)
     {
@@ -37,22 +37,26 @@
 
 @code {
     [Parameter]
-    public IEnumerable<TimeSeriesDto> TimeSeries
+    public List<TimeSeriesDto> TimeSeries
     {
         get => collectedByClasses
             .Values
-            .SelectMany(v => v);
+            .SelectMany(v => v)
+            .ToList();
         set
         {
+            if (needUpdate is false)
+                return;
+
+            needUpdate = false;
+
             Selected = default;
             collectedByClasses = new();
             timeseriesClassMultiplier = new();
-            StateHasChanged();
 
             foreach (var ts in value)
             {
                 var tsClass = ts.Name.ToTimeSeriesInfo().Class;
-                tsClass = ConvertToUtf8(tsClass);
 
                 timeseriesClassMultiplier.TryAdd(tsClass, 1);
 
@@ -61,6 +65,8 @@
 
                 collectedByClasses[tsClass].Add(ts);
             }
+
+            StateHasChanged();
         }
     }
 
@@ -79,6 +85,8 @@
     [Parameter]
     public EventCallback<Dataset> OnDatasetChanged { get; set; }
 
+    private bool needUpdate = true;
+
     private Dataset dataset;
 
     protected override async Task OnInitializedAsync()
@@ -87,7 +95,7 @@
         {
             await UpdateTimeSeries();
         }
-        catch (Exception ex) {}
+        catch (Exception) {}
     }
 
     private Dictionary<string, List<TimeSeriesDto>> collectedByClasses = new();
@@ -96,7 +104,7 @@
     private async Task InvokeFolderSelectionDialog()
     {
         await DialogService
-            .OpenAsync("Folder Selection", ds =>
+            .OpenAsync("Выбор папки", ds =>
             @<FolderSelector OnConfirm="(async ()=> {
                             ds.Close();
                             await UpdateTimeSeries();
@@ -113,19 +121,14 @@
             .Select(tsi => new TimeSeriesDto(Enumerable.Empty<double>().ToList(),
                 TimeSeriesName.FromTimeSeriesInfo(tsi)))
                 .ToList();
-        await TimeSeriesChanged.InvokeAsync(timeSeries);
-    }
 
-    private string ConvertToUtf8(string s)
-    {
-        var newString = Encoding.UTF8.GetString(Encoding.Default.GetBytes(s));
-        return newString;
+        needUpdate = true;
+        await TimeSeriesChanged.InvokeAsync(timeSeries);
     }
 
     private List<string> GetClasses()
          => TimeSeries
                 .Select(ts => ts.Name.ToTimeSeriesInfo().Class)
                 .Distinct()
-                .Select(ConvertToUtf8)
                 .ToList();
 }

@@ -7,25 +7,23 @@ service LearningService {
   rpc GetLearningModelsNames(google.protobuf.Empty)
       returns (LearningModelNames);
 
-  rpc GetDatasetNames(google.protobuf.Empty) returns (DatasetNames);
-
   rpc GetTrainedModels(google.protobuf.Empty) returns (TrainedModels);
 
   rpc TrainModel(Model) returns (TrainResponse);
 }
 
 message LearningModelNames { repeated string names = 1; }
-message DatasetNames { repeated string names = 1; }
-message TrainedModels { repeated Model models = 1; }
-message DatasetName { string name = 1; }
+message TrainedModels { repeated TrainedModel models = 1; }
 message TrainedModel {
   string dataset_name = 1;
   string model_name = 2;
   string uuid = 3;
+  map<string, string> statistics = 4;
 }
 message Model {
   string dataset_name = 1;
   string model_name = 2;
+  ModelParameters model_parameters = 3;
 }
 message ModelParameters {
   int32 time_series_length = 1;
@@ -33,7 +31,11 @@ message ModelParameters {
   FillParameters fill_parameters = 3;
 }
 
-enum FillParameters { FILL_ZEROES = 0; }
+enum FillParameters {
+  FILL_ZEROES_BOTH = 0;
+  FILL_ZEROES_LEFT = 1;
+  FILL_ZEROES_RIGHT = 2;
+}
 
 enum CutParameters {
   CUT_LEFT = 0;

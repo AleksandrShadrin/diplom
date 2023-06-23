@@ -19,7 +19,9 @@ class TimeSeries:
 
 class FillParameters(Enum):
     """How fill TimeSeries"""
-    FILL_ZEROES = 0
+    FILL_ZEROES_LEFT = 0
+    FILL_ZEROES_RIGHT = 1
+    FILL_ZEROES_BOTH = 2
 
 
 class CutParameters(Enum):
@@ -33,3 +35,4 @@ class TimeSeriesLearningParameters:
     """TimeSeries parameters to learn"""
     cut_parameters: CutParameters
     fill_parameters: FillParameters
+    length: int

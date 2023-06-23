@@ -4,9 +4,7 @@ from models.TimeSeries import TimeSeries
 from models.Dataset import Dataset
 from models.Result import Result
 from models.AppConfig import AppConfig
-import json
 import uuid
-from dataclasses import asdict
 from appdirs import user_data_dir
 import os
 import shutil
@@ -14,6 +12,7 @@ from dacite import from_dict
 from typing import List, Union
 import gzip
 import orjson
+
 
 class JsonDatasetService(BaseDatasetService):
 
@@ -88,8 +87,8 @@ class JsonDatasetService(BaseDatasetService):
         path - str: path to file
         """
         data = None
-        with gzip.open(path, 'rt', encoding='utf-8') as fr:
-            data = json.load(fr)
+        with gzip.open(path, 'rb') as fr:
+            data = orjson.loads(fr.read())
 
         timeseries = from_dict(data_class=TimeSeries, data=data)
         return timeseries
@@ -107,9 +106,10 @@ class JsonDatasetService(BaseDatasetService):
         """
         for ts in dataset.time_series:
             try:
-                with gzip.open(os.path.join(path,
-                                            str(uuid.uuid1()) + '.json.gz'),
-                               'wb') as fw:
+                with gzip.open(
+                        os.path.join(path,
+                                     str(uuid.uuid1()) + '.json.gz'),
+                        'wb') as fw:
                     fw.write(orjson.dumps(ts))
 
             except OSError:

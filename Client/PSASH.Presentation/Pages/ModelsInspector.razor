@@ -1,0 +1,88 @@
+﻿@page "/inspect-models"
+
+@using PSASH.Application.Services;
+@using PSASH.Core.Entities;
+
+@implements IDisposable
+
+@inject ILearningService learningService
+@inject ServerStateCheckerService serverChecker
+@inject NavigationManager navManager
+
+<RadzenStack class="pb-4" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="2" JustifyContent="JustifyContent.Center">
+    <RadzenCard class="w-100 bg-primary bg-opacity-75">
+        <RadzenText Text="Готовые модели" TextStyle="TextStyle.DisplayH4" class="text-white" />
+    </RadzenCard>
+</RadzenStack>
+
+@if(serverState)
+{
+    <RadzenCard class="p-4">
+        <RadzenDataList @ref=dataList Data="trainedModels" Style="height:500px;" class="overflow-auto" AllowVirtualization=true AllowPaging=false>
+            <Template Context="model">
+                <RadzenTabs TabPosition="TabPosition.Left">
+                    <Tabs>
+                        <RadzenTabsItem Text="Общая информация">
+                            <RadzenText class="rz-color-warning-light text-decoration-underline" Style="cursor:pointer;" 
+                                @onclick="@(() => navManager.NavigateTo($"/predict?id={model.Id}"))">
+                                Id: @model.Id
+                            </RadzenText>
+                            <RadzenText class="rz-color-info">
+                                Набор данных: @model.DatasetName
+                            </RadzenText>
+                            <RadzenText class="rz-color-info">
+                                Модель: @model.ModelName
+                            </RadzenText>
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Статистика">
+                            @foreach (var kvp in model.ModelStatistics.Stats)
+                            {
+                                <RadzenText class="rz-color-info">
+                                    @kvp.Key: @kvp.Value
+                                </RadzenText>
+                            }
+                        </RadzenTabsItem>
+                    </Tabs>
+                </RadzenTabs>
+            </Template>
+        </RadzenDataList>
+    </RadzenCard>
+}
+
+@code {
+    private CancellationTokenSource tokenSource = new();
+    private List<TrainedModel> trainedModels = new List<TrainedModel>();
+    private bool serverState = false;
+    private RadzenDataList<TrainedModel> dataList = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await serverChecker.StartAsync(500, OnServerStateChanged, tokenSource.Token);
+    }
+
+    public void OnServerStateChanged(bool state)
+    {
+        serverState = state;
+
+        if (state is true)
+            InvokeAsync(UpdateModels);
+        else
+            InvokeAsync(StateHasChanged);
+    }
+
+    public async Task UpdateModels()
+    {
+        trainedModels = await learningService.GetTrainedModels();
+
+        if(dataList is not null)
+            await dataList.LastPage();
+
+        await InvokeAsync(StateHasChanged);
+        
+    }
+
+    public void Dispose()
+    {
+        tokenSource.Cancel();
+    }
+}

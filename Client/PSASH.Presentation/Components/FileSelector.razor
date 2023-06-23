@@ -1,0 +1,59 @@
+﻿@using PSASH.Infrastructure.Exceptions;
+@using PSASH.Infrastructure.Services.FileBased;
+@inject NotificationService NotificationService
+
+<div>
+    <Explorer ShowFiles="true" SelectedItemChanged="OnFolderSelection"></Explorer>
+    <RadzenButton Text="ВЫБРАТЬ" ButtonStyle="ButtonStyle.Success" class="my-2" Click="ConfirmSelection"></RadzenButton>
+</div>
+
+@code {
+    [Parameter]
+    public Action OnConfirm { get; set; }
+
+    [Parameter]
+    public string SelectedFile { get; set; } = String.Empty;
+
+    [Parameter]
+    public EventCallback<string> SelectedFileChanged { get; set; }
+
+    private async Task OnFolderSelection(string path)
+    {
+        if (File.GetAttributes(path).HasFlag(FileAttributes.Directory))
+            return;
+
+        SelectedFile = path;
+    }
+
+    private void ConfirmSelection()
+    {
+        NotificationService.Notify(OnConfirmMessage());
+        SelectedFileChanged.InvokeAsync(SelectedFile);
+        OnConfirm();
+    }
+
+    private NotificationMessage OnConfirmMessage()
+    {
+        if (String.IsNullOrEmpty(SelectedFile))
+        {
+            return new NotificationMessage()
+                {
+                    Duration = 2000,
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Файл невыбран",
+                    Detail = "Выберите файл снова"
+                };
+        }
+        else
+        {
+            return new NotificationMessage()
+                {
+                    Duration = 2000,
+                    Severity = NotificationSeverity.Success,
+                    Summary= "Файл выбран",
+                    Detail = $"Файл: {SelectedFile}"
+                };
+        }
+
+    }
+}

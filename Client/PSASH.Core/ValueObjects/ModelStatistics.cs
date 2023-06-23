@@ -2,9 +2,9 @@
 {
     public class ModelStatistics
     {
-        public Dictionary<string, double> Stats { get; init; } = null!;
+        public Dictionary<string, string> Stats { get; init; } = null!;
 
-        public ModelStatistics(Dictionary<string, double> stats)
+        public ModelStatistics(Dictionary<string, string> stats)
         {
             if (stats is null)
                 throw new ArgumentNullException(

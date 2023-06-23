@@ -5,9 +5,10 @@ namespace PSASH.Core.ValueObjects
     public record TrainOptions
     {
         public int TimeSeriesLength { get; init; }
-        public Shift ShiftTo { get; init; } = Shift.RIGHT;
+        public CutOption CutOption { get; init; } = CutOption.CUT_RIGHT;
+        public FillOption FillOption { get; set; } = FillOption.FILL_LEFT;
 
-        public TrainOptions(int timeSeriesLength, Shift shiftTo)
+        public TrainOptions(int timeSeriesLength, CutOption cutOption, FillOption fillOption)
         {
             if (timeSeriesLength < 0)
             {
@@ -16,7 +17,9 @@ namespace PSASH.Core.ValueObjects
                     "TimeSeries length can't be < 0.");
             }
 
-            ShiftTo = shiftTo;
+            TimeSeriesLength = timeSeriesLength;
+            CutOption = cutOption;
+            FillOption = fillOption;
         }
     }
 }

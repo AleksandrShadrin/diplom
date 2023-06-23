@@ -10,15 +10,30 @@
 @inject AppStateService AppStateService
 @inject IDatasetSender DatasetSender
 @inject ServerStateCheckerService ServerStateChecker
+@inject NavigationManager navManager
+@inject NotificationService notificationService
 
 <RadzenRow Gap="1rem" class="mt-4 container-fluid" JustifyContent="JustifyContent.Right" Style="min-height:400px;">
     @if (Dataset is not null)
     {
         if (serverState is true)
         {
-            <RadzenColumn Size="8" class="card bg-primary p-4 bg-opacity-75 justify-content-between">
-                <RadzenText Text=@($"Выбран набор данных: {Dataset.Name}") class="text-white" />
-                <RadzenButton class="align-self-center" Text="Отправить" Click="SendDataset"  ButtonStyle="ButtonStyle.Primary" Style="max-width:8rem;" />
+            <RadzenColumn Size="8" class="card bg-primary p-4 bg-opacity-75">
+                <RadzenText Text=@($"Выбран набор данных: {Dataset.Name}") class="text-white" TextStyle="TextStyle.DisplayH4" />
+                <RadzenText Text=@($"Число временных рядов: {Dataset.GetValues().Count()}") class="text-white" TextStyle="TextStyle.DisplayH4" />
+                <div class="my-auto"></div>
+                @if (sendingDataset is false)
+                {
+                    <RadzenButton class="align-self-center" Text="Отправить" Click="SendDataset" ButtonStyle="ButtonStyle.Primary" Style="max-width:8rem;justify-self:end;" />
+                }
+                else
+                {
+                    <RadzenButton class="align-self-center" Disabled=true ButtonStyle="ButtonStyle.Primary" Style="max-width:12rem;justify-self:end;">
+                        <span class="spinner-grow"></span><span>Отправка...</span>
+                    </RadzenButton>
+                }
+
+
             </RadzenColumn>
         }
         else
@@ -42,9 +57,9 @@
     }
     @if (serverState is true)
     {
-        <RadzenColumn Size="4" class="card bg-primary bg-opacity-50 p-4">
+        <RadzenColumn Size="4" class="card rz-background-color-info bg-opacity-75 p-4">
             <RadzenText Text="Отправленные наборы данных" class="text-white" />
-            <PSASH.Presentation.Components.NameList Names="DatasetNames" />
+            <PSASH.Presentation.Components.NameList Names="DatasetNames" SelectedNameChanged="@((name) => navManager.NavigateTo($"learning/{name}"))" />
         </RadzenColumn>
     }
     else
@@ -61,6 +76,7 @@
     Dataset Dataset { get; set; } = default;
     List<string> DatasetNames = new();
     CancellationTokenSource tokenSource = new();
+    bool sendingDataset = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,7 +94,7 @@
         {
             Dataset = AppStateService.Dataset;
         }
-        catch (InfrastructureException ex)
+        catch (InfrastructureException)
         { }
     }
 
@@ -88,20 +104,99 @@
 
         if (state is true)
             InvokeAsync(UpdateDatasetNames);
-
-        InvokeAsync(StateHasChanged);
+        else
+            InvokeAsync(StateHasChanged);
     }
 
     private async Task UpdateDatasetNames()
     {
         DatasetNames = await DatasetSender.GetLoadedDatasetNames();
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task SendDataset()
     {
-        var res = await DatasetSender.SendDataset(Dataset, true);
+        var task = DatasetSender.SendDataset(Dataset, true);
+
+        try
+        {
+            notificationService.Notify(datasetSendingMessage);
+            sendingDataset = true;
+            await InvokeAsync(StateHasChanged);
+
+            await task;
+
+            if (task.Result.Ok())
+                notificationService.Notify(datasetSendedMessage);
+            else
+                notificationService.Notify(datasetDontSendedMessage);
+        }
+        catch
+        {
+            var allExceptions = task.Exception;
+
+            foreach (var ex in allExceptions.InnerExceptions)
+            {
+                Console.WriteLine(ex.Message);
+
+                if (ex is InfrastructureException)
+                    notificationService.Notify(CantConvertTimeSeriesMessage(ex.Message));
+
+                if (ex is not InfrastructureException and not Grpc.Core.RpcException)
+                {
+                    throw ex;
+                }
+            }
+        }
+
+        sendingDataset = false;
+        await InvokeAsync(UpdateDatasetNames);
+        await InvokeAsync(StateHasChanged);
     }
+
+    private async Task NotifyDatasetSended(Task<Infrastructure.Models.Result> task)
+    {
+        var res = await task;
+
+        if (res.Ok())
+            notificationService.Notify(datasetSendedMessage);
+        else
+            notificationService.Notify(datasetDontSendedMessage);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static NotificationMessage CantConvertTimeSeriesMessage(string message)
+        => new NotificationMessage()
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Невозможно сконвертировать временной ряд: ",
+                Detail = message,
+                Duration = 4000
+            };
+
+    private static NotificationMessage datasetSendingMessage = new NotificationMessage()
+        {
+            Severity = NotificationSeverity.Info,
+            Summary = "Начата: ",
+            Detail = "отправка набора данных.",
+            Duration = 4000
+        };
+
+    private static NotificationMessage datasetSendedMessage = new NotificationMessage()
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Успех: ",
+            Detail = "набор данных отправлен.",
+            Duration = 4000
+        };
+
+    private static NotificationMessage datasetDontSendedMessage = new NotificationMessage()
+        {
+            Severity = NotificationSeverity.Warning,
+            Summary = "Ошибка: ",
+            Detail = "набор данных неотправлен.",
+            Duration = 4000
+        };
 
     public void Dispose()
     {

@@ -1,10 +1,8 @@
-﻿using System.Net.Sockets;
-
-namespace Grpc.Client
+﻿namespace Grpc.Client.HealthCheck
 {
     public class ServerStatusService
     {
-        IHealthClient _healthClient;  
+        IHealthClient _healthClient;
         public ServerStatusService(IHealthClient client)
         {
             _healthClient = client;

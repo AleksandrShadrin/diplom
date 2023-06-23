@@ -1,7 +1,9 @@
-﻿using Grpc.Client;
+﻿using Grpc.Client.ClientForSending;
 using Grpc.Client.Models;
 using PSASH.Application.Services;
 using PSASH.Core.Entities;
+using PSASH.Core.ValueObjects;
+using PSASH.Infrastructure.Exceptions;
 using PSASH.Infrastructure.Models;
 
 namespace PSASH.Infrastructure.Services.GrpcBased
@@ -10,6 +12,9 @@ namespace PSASH.Infrastructure.Services.GrpcBased
     {
         private readonly IDatasetService<MonoTimeSeries> _datasetService;
         private readonly ISendingClient _sendingClient;
+        private CancellationTokenSource _cancellationTokenSource = new();
+        private InfrastructureException savedInfrastructureExceptions  = default;
+
 
         public MonoDatasetSender(IDatasetService<MonoTimeSeries> datasetService, ISendingClient sendingClient)
         {
@@ -27,15 +32,40 @@ namespace PSASH.Infrastructure.Services.GrpcBased
             var datasetShards = dataset
                 .GetValues()
                 .AsParallel()
-                .Select(_datasetService.LoadTimeSeries)
+                .Select(WrapLoadTimeSeries)
                 .Select(ConvertToTimeSeriesDto)
                 .Select(ts => new DatasetShard(rewrite, dataset.Name, ts));
 
-            var res = await _sendingClient.SendDataset(datasetShards);
+            try
+            {
+                _cancellationTokenSource = new();
 
-            return res.Status == Status.Success ?
-                Result.Ok(res.Message) :
-                Result.Error(res.Message);
+                var res = await _sendingClient
+                    .SendDataset(datasetShards, _cancellationTokenSource.Token);
+
+                return res.Status == Status.Success ?
+                    Result.Ok(res.Message) :
+                    Result.Error(res.Message);
+            }
+            catch (Grpc.Core.RpcException)
+            {
+                throw savedInfrastructureExceptions;
+            }
+        }
+
+        private MonoTimeSeries WrapLoadTimeSeries(TimeSeriesInfo info)
+        {
+            try
+            {
+                return _datasetService.LoadTimeSeries(info);
+            }
+            catch (InfrastructureException ex)
+            {
+                _cancellationTokenSource.Cancel();
+                savedInfrastructureExceptions = ex;
+            }
+
+            return new MonoTimeSeries(Enumerable.Empty<double>(), info);
         }
 
         public async Task<List<string>> GetLoadedDatasetNames()
@@ -43,7 +73,7 @@ namespace PSASH.Infrastructure.Services.GrpcBased
 
         public TimeSeriesDto ConvertToTimeSeriesDto(MonoTimeSeries ts)
             => new(ts.GetValues().ToList(),
-                ts.TimeSeriesInfo.id,
+                ts.TimeSeriesInfo.Id,
                 ts.TimeSeriesInfo.Class);
     }
 }
