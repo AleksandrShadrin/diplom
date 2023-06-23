@@ -4,6 +4,7 @@ from typing import Any, Dict
 from models.TimeSeries import TimeSeries
 from models.Dataset import Dataset
 from sklearn.preprocessing import LabelEncoder
+from babel.dates import format_datetime
 import pickle
 import gzip
 from models.Result import Result
@@ -89,7 +90,14 @@ class BasePredictor:
             return Result.ERROR
 
         if self._model_stats is not None:
-            self._model_stats['модель обучена'] = datetime.now()
+            for key in self._model_stats.keys():
+                self._model_stats[key] = self._model_stats[key] if \
+                    not isinstance(self._model_stats[key], (np.floating, float)) else \
+                    round(self._model_stats[key], 3)
+
+            now = datetime.now()
+            self._model_stats['модель обучена'] = format_datetime(
+                now, locale='ru')
             with open(os.path.join(self.path, self.id, 'stats.json'),
                       'wb') as fw:
                 fw.write(
